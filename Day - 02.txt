@@ -1,0 +1,792 @@
+# Day 2 — Data Models & MySQL
+
+## Topics Covered
+
+1. Physical & Logical Data Models
+2. Hierarchical Database Management System (HDBMS)
+3. Network Database Management System (NDBMS)
+4. Relational Database Management System (RDBMS)
+5. Object Database Management System (ODBMS)
+6. Object-Relational Database Management System (ORDBMS)
+7. Conceptual Models
+8. MySQL vs Oracle vs DB2 — Advantages & Drawbacks
+9. MySQL Installation
+10. Windows Authentication Mode
+11. Login & Password
+12. Data Models Overview
+13. Exploring Relational DBMS
+14. Analysing Requirements
+
+---
+
+# 1. Physical & Logical Data Models
+
+A **data model** describes how data is organized, stored, and related in a database.
+
+## Physical Data Model
+
+A **physical data model** describes how data is actually stored in a computer system.
+
+It focuses on:
+
+* Storage
+* Files
+* Tables
+* Indexes
+* Storage structures
+
+Example:
+
+```text
+Physical Model
+      ↓
+How data is stored
+      ↓
+Computer Storage
+```
+
+## Logical Data Model
+
+A **logical data model** describes the structure of data without focusing on how the data is physically stored.
+
+It focuses on:
+
+* Tables
+* Columns
+* Relationships
+* Keys
+* Data types
+
+Example:
+
+```text
+Student
+----------------
+Student_ID
+Name
+Age
+Department
+```
+
+### Simple Difference
+
+```text
+Logical Model  → What data looks like
+Physical Model → How data is stored
+```
+
+---
+
+# 2. Hierarchical Database Management System (HDBMS)
+
+**HDBMS** stands for **Hierarchical Database Management System**.
+
+A hierarchical database organizes data in a **tree-like structure**.
+
+It follows a parent-child relationship.
+
+### Example
+
+```text
+College
+   |
+   +--- CSE
+   |      |
+   |      +--- Student 1
+   |      +--- Student 2
+   |
+   +--- ECE
+          |
+          +--- Student 3
+          +--- Student 4
+```
+
+Here:
+
+* College → Parent
+* CSE/ECE → Child
+* Students → Lower-level children
+
+### Advantages
+
+* Simple structure
+* Easy to understand
+* Fast access to hierarchical data
+
+### Drawbacks
+
+* Difficult to represent complex relationships
+* Less flexible
+* Structural changes can be difficult
+
+### Key Point
+
+> HDBMS stores data in a tree structure.
+
+---
+
+# 3. Network Database Management System (NDBMS)
+
+**NDBMS** stands for **Network Database Management System**.
+
+A network database organizes data using a **network structure**.
+
+Unlike a hierarchical database, one record can have relationships with multiple records.
+
+### Example
+
+```text
+        Student
+        /     \
+       /       \
+      ↓         ↓
+ Course 1     Course 2
+      ↑         ↑
+       \       /
+        \_____/
+```
+
+A student can be connected to multiple courses.
+
+A course can also be connected to multiple students.
+
+### Advantages
+
+* Supports complex relationships
+* More flexible than hierarchical databases
+* Efficient for interconnected data
+
+### Drawbacks
+
+* More complex than hierarchical databases
+* Difficult to design and maintain
+* Less commonly used than relational databases
+
+### Key Point
+
+> NDBMS supports many-to-many relationships using a network structure.
+
+---
+
+# 4. Relational Database Management System (RDBMS)
+
+**RDBMS** stands for **Relational Database Management System**.
+
+An RDBMS stores data in **tables** consisting of rows and columns.
+
+### Example
+
+```text
+Students
+
++------------+--------+-----+------------+
+| Student_ID | Name   | Age | Department |
++------------+--------+-----+------------+
+| 101        | Rahul  | 20  | CSE        |
+| 102        | Priya  | 21  | ECE        |
+| 103        | Arjun  | 20  | IT         |
++------------+--------+-----+------------+
+```
+
+Here:
+
+```text
+Table      → Students
+Column     → Field
+Row        → Record
+Student_ID → Key
+```
+
+RDBMS uses relationships between tables.
+
+### Examples of RDBMS
+
+* MySQL
+* Oracle Database
+* Microsoft SQL Server
+* PostgreSQL
+* IBM Db2
+
+### Advantages
+
+* Easy to organize data
+* Supports SQL
+* Provides relationships between tables
+* Good data integrity
+* Supports multiple users
+* Widely used
+
+### Key Point
+
+> RDBMS stores data in tables and uses relationships between tables.
+
+---
+
+# 5. Object Database Management System (ODBMS)
+
+**ODBMS** stands for **Object Database Management System**.
+
+An ODBMS stores data in the form of **objects**.
+
+It follows concepts from **object-oriented programming**.
+
+An object can contain:
+
+* Data
+* Properties
+* Methods
+
+### Example
+
+```text
+Student Object
+
+Student_ID = 101
+Name = Rahul
+Age = 20
+
+Methods:
+Display()
+Update()
+```
+
+### Advantages
+
+* Works well with object-oriented programming
+* Supports complex data
+* Can store objects directly
+* Useful for complex applications
+
+### Drawbacks
+
+* More complex
+* Less widely used than RDBMS
+* Not ideal for every type of application
+
+### Key Point
+
+> ODBMS stores data as objects.
+
+---
+
+# 6. Object-Relational Database Management System (ORDBMS)
+
+**ORDBMS** stands for **Object-Relational Database Management System**.
+
+It combines features of:
+
+```text
+Object-Oriented Database
+          +
+Relational Database
+          =
+ORDBMS
+```
+
+It supports traditional relational database features along with some object-oriented features.
+
+### Features
+
+* Tables and relationships
+* SQL
+* Objects
+* Complex data types
+* Object-oriented features
+
+### Advantages
+
+* Combines relational and object-oriented features
+* Supports complex data
+* Provides SQL support
+* Useful for complex applications
+
+### Drawbacks
+
+* More complex than traditional RDBMS
+* Can require more knowledge to design and maintain
+
+### Key Point
+
+> ORDBMS combines relational and object-oriented database features.
+
+---
+
+# 7. Conceptual Models
+
+A **conceptual model** represents the overall structure of data at a high level.
+
+It focuses on:
+
+* Entities
+* Attributes
+* Relationships
+
+It does not focus on the physical storage of data.
+
+### Example
+
+For a college system:
+
+```text
+Student
+   |
+   | Enrolls
+   ↓
+Course
+```
+
+Here:
+
+```text
+Student → Entity
+Course  → Entity
+Enrolls → Relationship
+```
+
+### Example of Attributes
+
+```text
+Student
+----------------
+Student_ID
+Name
+Age
+Department
+```
+
+Here:
+
+```text
+Student → Entity
+Student_ID → Attribute
+Name → Attribute
+Age → Attribute
+Department → Attribute
+```
+
+### Key Point
+
+> A conceptual model gives a high-level view of the database.
+
+---
+
+# 8. MySQL vs Oracle vs DB2
+
+MySQL, Oracle, and IBM Db2 are relational database management systems.
+
+## MySQL
+
+MySQL is a popular open-source relational database management system.
+
+### Advantages
+
+* Open source
+* Easy to learn
+* Widely used for web applications
+* Good performance
+* Large community support
+
+### Drawbacks
+
+* Some advanced enterprise features are more limited compared with Oracle
+* Large and complex enterprise systems may require additional solutions
+
+---
+
+## Oracle Database
+
+Oracle Database is an enterprise-level relational database management system developed by Oracle.
+
+### Advantages
+
+* Powerful enterprise features
+* Strong security
+* High scalability
+* Good support for large databases
+* Advanced database management features
+
+### Drawbacks
+
+* Can be expensive
+* More complex to learn
+* Requires skilled administration
+
+---
+
+## IBM Db2
+
+IBM Db2 is an enterprise relational database management system developed by IBM.
+
+### Advantages
+
+* Good performance
+* Strong security
+* Suitable for enterprise applications
+* Supports large amounts of data
+* Strong integration with IBM systems
+
+### Drawbacks
+
+* Can be complex
+* Enterprise licensing can be expensive
+* Requires specialized knowledge
+
+### Simple Comparison
+
+```text
+MySQL  → Popular, open-source, easy to learn
+Oracle → Powerful, enterprise-focused
+Db2    → Enterprise database with strong performance
+```
+
+---
+
+# 9. MySQL Installation
+
+**MySQL Installation** means installing MySQL software on a computer so that databases can be created and managed.
+
+The installation process generally includes:
+
+```text
+Download MySQL
+      ↓
+Run Installer
+      ↓
+Choose Configuration
+      ↓
+Set Authentication
+      ↓
+Create Password
+      ↓
+Complete Installation
+```
+
+After installation, MySQL can be accessed using tools such as:
+
+* MySQL Command Line
+* MySQL Workbench
+
+### MySQL Workbench
+
+MySQL Workbench is a graphical tool used to:
+
+* Create databases
+* Create tables
+* Write SQL queries
+* Manage MySQL servers
+* View database structures
+
+---
+
+# 10. Windows Authentication Mode
+
+During MySQL setup on Windows, authentication settings determine how users are verified when connecting to the MySQL server.
+
+Authentication is used to make sure that only authorized users can access the database.
+
+The authentication method works with:
+
+```text
+User
+  ↓
+Authentication
+  ↓
+MySQL Server
+  ↓
+Database Access
+```
+
+The exact authentication options can depend on the MySQL version and installation configuration.
+
+---
+
+# 11. Login & Password
+
+A MySQL user normally connects to the database using a username and authentication credentials.
+
+Example:
+
+```text
+Username: root
+Password: ********
+```
+
+The `root` account is commonly created during MySQL installation.
+
+The password should be kept secure.
+
+### Basic Login Concept
+
+```text
+Username
+   +
+Password
+   ↓
+Authentication
+   ↓
+MySQL Server
+```
+
+If authentication is successful, the user can access the database according to their permissions.
+
+---
+
+# 12. Data Models Overview
+
+Different database systems use different ways to organize data.
+
+### Main Data Models
+
+```text
+Data Models
+    |
+    +--- Hierarchical
+    |
+    +--- Network
+    |
+    +--- Relational
+    |
+    +--- Object-Oriented
+    |
+    +--- Object-Relational
+```
+
+### Simple Comparison
+
+| Model             | Main Structure   |
+| ----------------- | ---------------- |
+| Hierarchical      | Tree             |
+| Network           | Network/Graph    |
+| Relational        | Tables           |
+| Object            | Objects          |
+| Object-Relational | Tables + Objects |
+
+The **relational model** is one of the most widely used database models.
+
+---
+
+# 13. Exploring Relational DBMS
+
+A relational DBMS organizes information into tables.
+
+### Example
+
+```text
+Students
+
++------------+--------+-----+
+| Student_ID | Name   | Age |
++------------+--------+-----+
+| 101        | Rahul  | 20  |
+| 102        | Priya  | 21  |
++------------+--------+-----+
+```
+
+A database can contain multiple related tables.
+
+Example:
+
+```text
+College Database
+       |
+       +--- Students
+       |
+       +--- Courses
+       |
+       +--- Faculty
+       |
+       +--- Fees
+       |
+       +--- Attendance
+```
+
+Tables can be connected using keys.
+
+### Example
+
+```text
+Students
+Student_ID
+Name
+Course_ID
+```
+
+```text
+Courses
+Course_ID
+Course_Name
+```
+
+Here, `Course_ID` can be used to connect the two tables.
+
+### Important Terms
+
+```text
+Database → Collection of related data
+Table    → Structure containing data
+Column   → Attribute/Field
+Row      → Record
+Primary Key → Uniquely identifies a record
+Foreign Key → Connects related tables
+```
+
+---
+
+# 14. Analysing Requirements
+
+**Requirement analysis** is the process of understanding what information a database needs to store and what the system needs to do.
+
+Before creating a database, we need to understand the requirements.
+
+### Main Steps
+
+```text
+Understand the Problem
+        ↓
+Identify Users
+        ↓
+Identify Required Data
+        ↓
+Identify Entities
+        ↓
+Identify Attributes
+        ↓
+Identify Relationships
+        ↓
+Design the Database
+```
+
+### Example
+
+Suppose we need to create a database for a college.
+
+First, identify the requirements:
+
+```text
+Students
+Courses
+Teachers
+Fees
+Attendance
+Marks
+```
+
+Then identify entities:
+
+```text
+Student
+Course
+Teacher
+Fee
+Attendance
+Marks
+```
+
+Then identify important attributes.
+
+### Student
+
+```text
+Student_ID
+Name
+Age
+Email
+Department
+```
+
+### Course
+
+```text
+Course_ID
+Course_Name
+Credits
+```
+
+### Teacher
+
+```text
+Teacher_ID
+Name
+Department
+```
+
+After identifying entities and attributes, relationships can be determined.
+
+Example:
+
+```text
+Student
+   |
+   | Enrolls
+   ↓
+Course
+```
+
+### Key Point
+
+> Requirement analysis helps us understand what the database should store and how the system should work before designing the database.
+
+---
+
+# Day 2 Quick Revision
+
+```text
+Physical Model
+→ How data is physically stored
+
+Logical Model
+→ Structure of data
+
+HDBMS
+→ Tree structure
+
+NDBMS
+→ Network structure
+
+RDBMS
+→ Tables and relationships
+
+ODBMS
+→ Objects
+
+ORDBMS
+→ Relational + Object features
+
+Conceptual Model
+→ High-level database design
+
+MySQL
+→ Popular relational database system
+
+Oracle
+→ Enterprise relational database
+
+Db2
+→ IBM enterprise relational database
+
+Authentication
+→ Verifies database users
+
+Requirement Analysis
+→ Understand what the database needs
+```
+
+# Day 2 Takeaway
+
+Today I learned about different **data models**, including hierarchical, network, relational, object, and object-relational models.
+
+I also learned about **conceptual models, MySQL installation, authentication, relational databases, MySQL vs Oracle vs Db2, and requirement analysis**.
+
+The most important concept is:
+
+```text
+Requirement Analysis
+        ↓
+Conceptual Model
+        ↓
+Logical Model
+        ↓
+Physical Model
+        ↓
+Database Implementation
+```
