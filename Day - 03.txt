@@ -1,0 +1,353 @@
+# Day 3 — SQL Commands and Database Operations
+
+## 1. History & Features of SQL
+
+### History of SQL
+- SQL stands for **Structured Query Language**.
+- SQL was developed at IBM in the 1970s.
+- It was originally based on a relational database language called SEQUEL.
+- SQL is used to communicate with relational database management systems (RDBMS).
+- MySQL, Oracle, SQL Server, and PostgreSQL support SQL.
+
+### Features of SQL
+- Easy to learn and use.
+- Used to create and manage databases.
+- Helps insert, retrieve, update, and delete data.
+- Supports security and access control.
+- Supports transactions.
+- Can manage large amounts of structured data.
+
+## 2. Types of SQL Commands — DDL
+
+DDL stands for **Data Definition Language**.
+
+DDL commands define or modify the structure of database objects, such as databases and tables.
+
+### Common DDL Commands
+- `CREATE` — Creates database objects.
+- `ALTER` — Modifies the structure of existing objects.
+- `DROP` — Removes database objects.
+- `TRUNCATE` — Removes all rows from a table.
+- `RENAME` — Renames a database object where supported.
+
+Example:
+
+```sql
+CREATE DATABASE college;
+```
+
+This creates a database named `college`.
+
+## 3. DML — Data Manipulation Language
+
+DML stands for **Data Manipulation Language**.
+
+DML commands are used to insert, update, and delete data stored in tables.
+
+### Common DML Commands
+- `INSERT` — Adds new records.
+- `UPDATE` — Modifies existing records.
+- `DELETE` — Removes selected records.
+
+Examples:
+
+```sql
+INSERT INTO students (id, name)
+VALUES (1, 'Ravi');
+```
+
+```sql
+UPDATE students
+SET name = 'Rahul'
+WHERE id = 1;
+```
+
+```sql
+DELETE FROM students
+WHERE id = 1;
+```
+
+**Note:** Always use a suitable `WHERE` condition with `UPDATE` and `DELETE` when you intend to change or remove specific rows.
+
+## 4. DQL — Data Query Language
+
+DQL stands for **Data Query Language**.
+
+It is used to retrieve data from database tables.
+
+### Main DQL Command
+- `SELECT` — Retrieves data from a table.
+
+Examples:
+
+```sql
+SELECT * FROM students;
+```
+
+Retrieves all columns and rows from the `students` table.
+
+```sql
+SELECT name FROM students;
+```
+
+Retrieves only the `name` column.
+
+```sql
+SELECT * FROM students
+WHERE id = 1;
+```
+
+Retrieves the record whose ID is `1`.
+
+## 5. DCL — Data Control Language
+
+DCL stands for **Data Control Language**.
+
+DCL commands control user privileges and access to database objects.
+
+### Common DCL Commands
+- `GRANT` — Gives privileges to a user.
+- `REVOKE` — Removes previously granted privileges.
+
+Examples:
+
+```sql
+GRANT SELECT ON college.students
+TO 'user1'@'localhost';
+```
+
+Grants the `SELECT` privilege on the specified table to the user.
+
+```sql
+REVOKE SELECT ON college.students
+FROM 'user1'@'localhost';
+```
+
+Removes the `SELECT` privilege.
+
+**Note:** These examples assume the MySQL user already exists and the executing account has the required privileges.
+
+## 6. TCL — Transaction Control Language
+
+TCL stands for **Transaction Control Language**.
+
+TCL commands manage transactions in a database.
+
+### Common TCL Commands
+- `COMMIT` — Saves transaction changes permanently.
+- `ROLLBACK` — Undoes uncommitted transaction changes.
+- `SAVEPOINT` — Creates a point within a transaction to which you can roll back.
+
+Examples:
+
+```sql
+START TRANSACTION;
+
+UPDATE students
+SET name = 'Kiran'
+WHERE id = 1;
+
+COMMIT;
+```
+
+The transaction changes are committed.
+
+```sql
+START TRANSACTION;
+
+UPDATE students
+SET name = 'Arun'
+WHERE id = 1;
+
+ROLLBACK;
+```
+
+The uncommitted change is undone.
+
+```sql
+START TRANSACTION;
+
+UPDATE students
+SET name = 'Kiran'
+WHERE id = 1;
+
+SAVEPOINT sp1;
+
+UPDATE students
+SET name = 'Arun'
+WHERE id = 1;
+
+ROLLBACK TO sp1;
+
+COMMIT;
+```
+
+The transaction rolls back to the savepoint, then commits the remaining changes.
+
+**Note:** Transaction behavior depends on the table storage engine. In MySQL, transactions are supported by engines such as InnoDB.
+
+## 7. Creating Databases
+
+The `CREATE DATABASE` command creates a new database.
+
+### Syntax
+
+```sql
+CREATE DATABASE database_name;
+```
+
+### Example
+
+```sql
+CREATE DATABASE college;
+```
+
+Creates a database named `college`.
+
+### Avoiding an Error if It Already Exists
+
+```sql
+CREATE DATABASE IF NOT EXISTS college;
+```
+
+This creates the database only if it does not already exist.
+
+## 8. Altering Databases
+
+The `ALTER` command changes the structure of database objects.
+
+In MySQL, `ALTER DATABASE` can modify certain database characteristics, such as the default character set or collation. It is not used to rename a database.
+
+### Example
+
+```sql
+ALTER DATABASE college
+CHARACTER SET utf8mb4;
+```
+
+Sets the database's default character set to `utf8mb4`.
+
+### Altering a Table
+
+Table structure changes are also performed using `ALTER TABLE`.
+
+```sql
+ALTER TABLE students
+ADD email VARCHAR(100);
+```
+
+Adds an `email` column to the `students` table.
+
+## 9. Deleting Databases
+
+The `DROP DATABASE` command deletes a database and its objects.
+
+### Syntax
+
+```sql
+DROP DATABASE database_name;
+```
+
+### Example
+
+```sql
+DROP DATABASE college;
+```
+
+Deletes the `college` database.
+
+### Safe Version
+
+```sql
+DROP DATABASE IF EXISTS college;
+```
+
+Deletes the database if it exists.
+
+**Warning:** Dropping a database permanently removes its tables and data. Confirm the database name and take a backup before executing this command.
+
+## 10. USE Command
+
+The `USE` command selects a database as the current database for the session.
+
+### Syntax
+
+```sql
+USE database_name;
+```
+
+### Example
+
+```sql
+USE college;
+```
+
+After selecting the database, you can refer to its tables without writing the database name each time.
+
+Example:
+
+```sql
+SELECT * FROM students;
+```
+
+This queries the `students` table in the current database.
+
+## 11. SHOW DATABASES Command
+
+The `SHOW DATABASES` command displays databases visible to the current MySQL account.
+
+### Syntax
+
+```sql
+SHOW DATABASES;
+```
+
+### Example
+
+```sql
+SHOW DATABASES;
+```
+
+This lists the databases the account is permitted to see.
+
+### Related Commands
+
+Show the current database:
+
+```sql
+SELECT DATABASE();
+```
+
+Show tables in the current database:
+
+```sql
+SHOW TABLES;
+```
+
+Show the structure of a table:
+
+```sql
+DESCRIBE students;
+```
+
+## Quick Revision
+
+| Command | Purpose |
+|---|---|
+| `CREATE` | Creates database objects |
+| `ALTER` | Modifies object structure or characteristics |
+| `DROP` | Removes database objects |
+| `INSERT` | Adds records |
+| `UPDATE` | Modifies records |
+| `DELETE` | Removes records |
+| `SELECT` | Retrieves records |
+| `GRANT` | Gives privileges |
+| `REVOKE` | Removes privileges |
+| `COMMIT` | Saves transaction changes |
+| `ROLLBACK` | Undoes uncommitted changes |
+| `USE` | Selects the current database |
+| `SHOW DATABASES` | Lists visible databases |
+
+## Day 3 Takeaway
+
+SQL commands help manage database structures, manipulate and retrieve data, control user privileges, and manage transactions. Understanding DDL, DML, DQL, DCL, and TCL provides a foundation for working with MySQL databases.
