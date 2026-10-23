@@ -1,0 +1,265 @@
+# Day 5 — INSERT, UPDATE & DELETE in MySQL
+
+## Topics Covered
+
+1. Introduction to INSERT
+2. INSERT INTO — Adding Records
+3. Inserting Multiple Records
+4. Introduction to UPDATE
+5. UPDATE with WHERE
+6. Introduction to DELETE
+7. DELETE with WHERE
+8. Difference Between DELETE, DROP, and TRUNCATE
+9. Important Safety Rules
+10. Quick Revision
+
+---
+
+## 1. Introduction to INSERT
+
+The `INSERT` statement is used to add new records into a database table.
+
+### Syntax
+
+```sql
+INSERT INTO table_name (column1, column2, column3)
+VALUES (value1, value2, value3);
+```
+
+### Example
+
+```sql
+CREATE DATABASE college_db;
+USE college_db;
+
+CREATE TABLE students (
+    student_id INT PRIMARY KEY,
+    name VARCHAR(50),
+    age INT,
+    department VARCHAR(30)
+);
+```
+
+Insert one student record:
+
+```sql
+INSERT INTO students (student_id, name, age, department)
+VALUES (101, 'Rahul', 20, 'CSE');
+```
+
+This adds one record to the `students` table.
+
+---
+
+## 2. Inserting Multiple Records
+
+You can insert multiple records in a single statement.
+
+```sql
+INSERT INTO students (student_id, name, age, department)
+VALUES
+(102, 'Priya', 21, 'ECE'),
+(103, 'Arjun', 20, 'IT'),
+(104, 'Sneha', 22, 'CSE');
+```
+
+To display the records:
+
+```sql
+SELECT * FROM students;
+```
+
+### Expected Output
+
+| student_id | name | age | department |
+|---:|---|---:|---|
+| 101 | Rahul | 20 | CSE |
+| 102 | Priya | 21 | ECE |
+| 103 | Arjun | 20 | IT |
+| 104 | Sneha | 22 | CSE |
+
+---
+
+## 3. Introduction to UPDATE
+
+The `UPDATE` statement modifies existing records in a table.
+
+### Syntax
+
+```sql
+UPDATE table_name
+SET column_name = new_value
+WHERE condition;
+```
+
+### Example
+
+Change Rahul's age to 21:
+
+```sql
+UPDATE students
+SET age = 21
+WHERE student_id = 101;
+```
+
+Verify the change:
+
+```sql
+SELECT * FROM students
+WHERE student_id = 101;
+```
+
+**Important:** The `WHERE` clause specifies which records should be updated.
+
+### Updating Multiple Columns
+
+```sql
+UPDATE students
+SET age = 22,
+    department = 'IT'
+WHERE student_id = 102;
+```
+
+This changes Priya's age and department.
+
+---
+
+## 4. UPDATE Without WHERE
+
+If you execute an UPDATE statement without a `WHERE` clause, it updates every record in the table.
+
+Example:
+
+```sql
+UPDATE students
+SET department = 'CSE';
+```
+
+This changes the department of **all students** to CSE.
+
+Always check the condition before executing an UPDATE statement.
+
+---
+
+## 5. Introduction to DELETE
+
+The `DELETE` statement removes records from a table.
+
+### Syntax
+
+```sql
+DELETE FROM table_name
+WHERE condition;
+```
+
+### Example
+
+Delete the student whose ID is 104:
+
+```sql
+DELETE FROM students
+WHERE student_id = 104;
+```
+
+Verify the deletion:
+
+```sql
+SELECT * FROM students;
+```
+
+The record with student ID 104 will no longer appear.
+
+---
+
+## 6. DELETE Without WHERE
+
+A DELETE statement without a `WHERE` clause removes all records from the table.
+
+```sql
+DELETE FROM students;
+```
+
+This removes all student records but keeps the table structure.
+
+**Warning:** Always confirm your intended condition before executing DELETE.
+
+---
+
+## 7. DELETE vs DROP vs TRUNCATE
+
+| Feature | DELETE | DROP | TRUNCATE |
+|---|---|---|---|
+| Purpose | Removes records | Removes a table | Removes all records |
+| Table structure | Preserved | Removed | Preserved |
+| WHERE clause | Supported | Not supported | Not supported |
+| Selective removal | Yes | No | No |
+| Typical use | Delete selected rows | Remove a table | Empty a table |
+
+### Examples
+
+**DELETE**
+
+```sql
+DELETE FROM students
+WHERE student_id = 101;
+```
+
+**TRUNCATE**
+
+```sql
+TRUNCATE TABLE students;
+```
+
+**DROP**
+
+```sql
+DROP TABLE students;
+```
+
+Use these statements carefully. Transaction and recovery behavior depends on the database engine and operation.
+
+---
+
+## 8. Important Safety Rules
+
+- Use `WHERE` when updating or deleting selected records.
+- Run a SELECT query first to verify which records match your condition.
+- Keep a backup before making important changes.
+- Avoid running destructive queries on production databases without authorization.
+- Check the table name and condition before executing a query.
+
+Example:
+
+```sql
+SELECT * FROM students
+WHERE student_id = 101;
+```
+
+After verifying the correct record, perform the intended update or deletion.
+
+---
+
+## 9. Quick Revision
+
+| Command | Purpose |
+|---|---|
+| `INSERT` | Adds new records |
+| `UPDATE` | Modifies existing records |
+| `DELETE` | Removes selected or all records |
+| `TRUNCATE` | Removes all records while preserving the table |
+| `DROP` | Removes the table itself |
+| `SELECT` | Retrieves records |
+
+### Key Takeaways
+
+- `INSERT` adds data.
+- `UPDATE` changes data.
+- `DELETE` removes data.
+- `WHERE` limits which records are affected.
+- Always verify the target records before making changes.
+
+---
+
+## Day 5 Summary
+
+Today I learned how to insert new records, update existing information, and delete records using MySQL. I also understood the differences between DELETE, DROP, and TRUNCATE and why the WHERE clause is important for safe database operations.
