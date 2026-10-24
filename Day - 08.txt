@@ -1,0 +1,22 @@
+Create a professional, beginner-friendly Markdown notes file for **MySQL Day 8** in my existing MySQL learning repository.
+
+**Topics to include:**
+1. SELECT with WHERE Clause
+2. ORDER BY (ASC / DESC)
+3. DISTINCT Keyword
+4. GROUP BY with HAVING
+
+Requirements:
+- Save the notes as `Day-08/notes.md`.
+- Explain each concept in simple, natural language.
+- Include correct MySQL syntax and clear SQL examples.
+- Explain each example with a short comment or explanation.
+- Include a comparison table for WHERE vs HAVING.
+- Add a short summary at the end.
+- Use professional Markdown headings and code blocks.
+- Keep the notes consistent with my previous daily notes.
+- Do not create practice files.
+- Do not modify other files.
+- Do not run Git commands, commit, or push anything.
+
+If `Day-08/notes.md` does not exist, create it. If it already exists, review and update only that file.
