@@ -1,0 +1,749 @@
+# Day 10 — MySQL Numeric and String Functions
+
+## 1. Numeric Function: ROUND()
+
+The `ROUND()` function rounds a number to a specified number of decimal places.
+
+### Syntax
+
+```sql
+ROUND(number, decimal_places)
+```
+
+### Example
+
+```sql
+SELECT ROUND(12.567, 2) AS Result;
+```
+
+**Output:** `12.57`
+
+**Explanation:** Rounds 12.567 to two decimal places.
+
+Another example:
+
+```sql
+SELECT ROUND(15.4) AS Result;
+```
+
+**Output:** `15`
+
+**Explanation:** Rounds the number to the nearest integer when the decimal-place argument is omitted.
+
+---
+
+## 2. Numeric Function: CEIL()
+
+The `CEIL()` function returns the smallest integer greater than or equal to a number.
+
+### Syntax
+
+```sql
+CEIL(number)
+```
+
+### Example
+
+```sql
+SELECT CEIL(12.3) AS Result;
+```
+
+**Output:** `13`
+
+**Explanation:** Returns the next integer because 13 is the smallest integer greater than or equal to 12.3.
+
+---
+
+## 3. Numeric Function: FLOOR()
+
+The `FLOOR()` function returns the largest integer less than or equal to a number.
+
+### Syntax
+
+```sql
+FLOOR(number)
+```
+
+### Example
+
+```sql
+SELECT FLOOR(12.9) AS Result;
+```
+
+**Output:** `12`
+
+**Explanation:** Returns 12 because it is the largest integer less than or equal to 12.9.
+
+### CEIL() vs FLOOR()
+
+- `CEIL(12.3)` returns `13`.
+- `FLOOR(12.9)` returns `12`.
+
+---
+
+## 4. Numeric Function: POWER()
+
+The `POWER()` function raises a number to a specified exponent.
+
+### Syntax
+
+```sql
+POWER(number, exponent)
+```
+
+### Example
+
+```sql
+SELECT POWER(2, 3) AS Result;
+```
+
+**Output:** `8`
+
+**Explanation:** Calculates \(2^3 = 2 \times 2 \times 2 = 8\).
+
+---
+
+## 5. Numeric Function: SQRT()
+
+The `SQRT()` function returns the square root of a number.
+
+### Syntax
+
+```sql
+SQRT(number)
+```
+
+### Example
+
+```sql
+SELECT SQRT(64) AS Result;
+```
+
+**Output:** `8`
+
+**Explanation:** The square root of 64 is 8 because \(8 \times 8 = 64\).
+
+**Note:** A negative input returns `NULL` in MySQL.
+
+---
+
+## 6. Numeric Function: ABS()
+
+The `ABS()` function returns the absolute value of a number. It removes the negative sign from a negative value.
+
+### Syntax
+
+```sql
+ABS(number)
+```
+
+### Example
+
+```sql
+SELECT ABS(-25) AS Result;
+```
+
+**Output:** `25`
+
+**Explanation:** The absolute value of -25 is 25.
+
+Another example:
+
+```sql
+SELECT ABS(15) AS Result;
+```
+
+**Output:** `15`
+
+---
+
+## 7. Numeric Function: MOD()
+
+The `MOD()` function returns the remainder after division.
+
+### Syntax
+
+```sql
+MOD(number, divisor)
+```
+
+### Example
+
+```sql
+SELECT MOD(10, 3) AS Result;
+```
+
+**Output:** `1`
+
+**Explanation:** When 10 is divided by 3, the remainder is 1.
+
+Another example:
+
+```sql
+SELECT MOD(12, 4) AS Result;
+```
+
+**Output:** `0`
+
+**Explanation:** 12 is exactly divisible by 4, so the remainder is 0.
+
+---
+
+## 8. Numeric Function: RAND()
+
+The `RAND()` function generates a pseudo-random floating-point number greater than or equal to 0 and less than 1.
+
+### Syntax
+
+```sql
+RAND()
+```
+
+### Example
+
+```sql
+SELECT RAND() AS RandomNumber;
+```
+
+**Explanation:** Returns a random number, such as `0.4382`. The actual result changes between evaluations.
+
+### Random Number with a Seed
+
+```sql
+SELECT RAND(10) AS RandomNumber;
+```
+
+**Explanation:** A fixed seed can produce a repeatable sequence of pseudo-random values.
+
+**Note:** `RAND()` is not suitable for security-sensitive random values.
+
+---
+
+## 9. Numeric Function: SIGN()
+
+The `SIGN()` function indicates whether a number is negative, zero, or positive.
+
+### Syntax
+
+```sql
+SIGN(number)
+```
+
+### Example
+
+```sql
+SELECT
+    SIGN(-10) AS NegativeValue,
+    SIGN(0) AS ZeroValue,
+    SIGN(10) AS PositiveValue;
+```
+
+**Output:**
+
+- `SIGN(-10)` returns `-1`.
+- `SIGN(0)` returns `0`.
+- `SIGN(10)` returns `1`.
+
+---
+
+## 10. Numeric Function: GREATEST()
+
+The `GREATEST()` function returns the largest value among two or more arguments.
+
+### Syntax
+
+```sql
+GREATEST(value1, value2, value3, ...)
+```
+
+### Example
+
+```sql
+SELECT GREATEST(10, 25, 15, 40) AS Result;
+```
+
+**Output:** `40`
+
+**Explanation:** Returns the highest value from the supplied values.
+
+**Note:** In MySQL, if any argument is `NULL`, `GREATEST()` returns `NULL`.
+
+---
+
+## 11. Numeric Function: LEAST()
+
+The `LEAST()` function returns the smallest value among two or more arguments.
+
+### Syntax
+
+```sql
+LEAST(value1, value2, value3, ...)
+```
+
+### Example
+
+```sql
+SELECT LEAST(10, 25, 15, 40) AS Result;
+```
+
+**Output:** `10`
+
+**Explanation:** Returns the smallest value from the supplied values.
+
+**Note:** In MySQL, if any argument is `NULL`, `LEAST()` returns `NULL`.
+
+---
+
+# String Functions
+
+String functions are used to manipulate, search, measure, and format text values.
+
+## 12. String Function: UPPER()
+
+The `UPPER()` function converts lowercase letters in a string to uppercase.
+
+### Syntax
+
+```sql
+UPPER(string)
+```
+
+### Example
+
+```sql
+SELECT UPPER('hello world') AS Result;
+```
+
+**Output:** `HELLO WORLD`
+
+**Explanation:** Converts the text to uppercase.
+
+---
+
+## 13. String Function: LOWER()
+
+The `LOWER()` function converts uppercase letters in a string to lowercase.
+
+### Syntax
+
+```sql
+LOWER(string)
+```
+
+### Example
+
+```sql
+SELECT LOWER('HELLO WORLD') AS Result;
+```
+
+**Output:** `hello world`
+
+**Explanation:** Converts the text to lowercase.
+
+---
+
+## 14. String Function: LENGTH()
+
+The `LENGTH()` function returns the length of a string in **bytes**.
+
+### Syntax
+
+```sql
+LENGTH(string)
+```
+
+### Example
+
+```sql
+SELECT LENGTH('Hello') AS Result;
+```
+
+**Output:** `5`
+
+**Explanation:** Each character in the English word `Hello` uses one byte in this example.
+
+**Important:** For multibyte characters, the byte count may be greater than the number of characters.
+
+---
+
+## 15. String Function: CHAR_LENGTH()
+
+The `CHAR_LENGTH()` function returns the number of characters in a string.
+
+### Syntax
+
+```sql
+CHAR_LENGTH(string)
+```
+
+### Example
+
+```sql
+SELECT CHAR_LENGTH('Hello') AS Result;
+```
+
+**Output:** `5`
+
+**Explanation:** The string contains five characters.
+
+### LENGTH() vs CHAR_LENGTH()
+
+```sql
+SELECT
+    LENGTH('Hello') AS ByteCount,
+    CHAR_LENGTH('Hello') AS CharacterCount;
+```
+
+**Output:** Both return `5` for this English word.
+
+For multibyte text, `LENGTH()` counts bytes while `CHAR_LENGTH()` counts characters.
+
+---
+
+## 16. String Function: SUBSTRING()
+
+The `SUBSTRING()` function extracts part of a string from a specified starting position.
+
+### Syntax
+
+```sql
+SUBSTRING(string, start_position, length)
+```
+
+The length argument is optional.
+
+### Example
+
+```sql
+SELECT SUBSTRING('MySQL Database', 1, 5) AS Result;
+```
+
+**Output:** `MySQL`
+
+**Explanation:** Extracts five characters starting from position 1.
+
+Another example:
+
+```sql
+SELECT SUBSTRING('MySQL Database', 7) AS Result;
+```
+
+**Output:** `Database`
+
+**Explanation:** Extracts the text starting from position 7 until the end.
+
+**Note:** MySQL string positions start at 1, not 0.
+
+---
+
+## 17. String Function: LEFT()
+
+The `LEFT()` function returns a specified number of characters from the beginning of a string.
+
+### Syntax
+
+```sql
+LEFT(string, number_of_characters)
+```
+
+### Example
+
+```sql
+SELECT LEFT('Database', 4) AS Result;
+```
+
+**Output:** `Data`
+
+**Explanation:** Returns the first four characters.
+
+---
+
+## 18. String Function: RIGHT()
+
+The `RIGHT()` function returns a specified number of characters from the end of a string.
+
+### Syntax
+
+```sql
+RIGHT(string, number_of_characters)
+```
+
+### Example
+
+```sql
+SELECT RIGHT('Database', 4) AS Result;
+```
+
+**Output:** `base`
+
+**Explanation:** Returns the last four characters.
+
+---
+
+## 19. String Function: CONCAT()
+
+The `CONCAT()` function joins two or more strings into one string.
+
+### Syntax
+
+```sql
+CONCAT(string1, string2, ...)
+```
+
+### Example
+
+```sql
+SELECT CONCAT('My', 'SQL') AS Result;
+```
+
+**Output:** `MySQL`
+
+**Explanation:** Combines the two strings.
+
+### Example with Spaces
+
+```sql
+SELECT CONCAT('Hello', ' ', 'World') AS Result;
+```
+
+**Output:** `Hello World`
+
+**Note:** In MySQL, if any argument to `CONCAT()` is `NULL`, the result is `NULL`.
+
+---
+
+## 20. String Function: CONCAT_WS()
+
+`CONCAT_WS()` means concatenate with separator. It joins strings using a separator placed between the values.
+
+### Syntax
+
+```sql
+CONCAT_WS(separator, string1, string2, ...)
+```
+
+### Example
+
+```sql
+SELECT CONCAT_WS('-', '2026', '10', '24') AS Result;
+```
+
+**Output:** `2026-10-24`
+
+**Explanation:** The hyphen is inserted between each value.
+
+### Example with Names
+
+```sql
+SELECT CONCAT_WS(' ', 'John', 'David', 'Smith') AS FullName;
+```
+
+**Output:** `John David Smith`
+
+**Important:** `CONCAT_WS()` skips `NULL` values after the separator, but a `NULL` separator returns `NULL`.
+
+---
+
+## 21. String Function: REPLACE()
+
+The `REPLACE()` function replaces all occurrences of a specified substring with another substring.
+
+### Syntax
+
+```sql
+REPLACE(string, old_substring, new_substring)
+```
+
+### Example
+
+```sql
+SELECT REPLACE('I like Java', 'Java', 'MySQL') AS Result;
+```
+
+**Output:** `I like MySQL`
+
+**Explanation:** Replaces `Java` with `MySQL`.
+
+Another example:
+
+```sql
+SELECT REPLACE('banana', 'a', 'o') AS Result;
+```
+
+**Output:** `bonono`
+
+**Explanation:** Replaces every occurrence of `a` with `o`.
+
+---
+
+## 22. String Function: TRIM()
+
+The `TRIM()` function removes spaces from the beginning and end of a string by default.
+
+### Syntax
+
+```sql
+TRIM(string)
+```
+
+### Example
+
+```sql
+SELECT TRIM('   MySQL   ') AS Result;
+```
+
+**Output:** `MySQL`
+
+**Explanation:** Removes leading and trailing spaces.
+
+### Removing a Specific Character
+
+```sql
+SELECT TRIM(BOTH 'x' FROM 'xxxHello xxx') AS Result;
+```
+
+**Explanation:** Removes the specified `x` characters from both ends where present. It does not remove matching characters from the middle of the string.
+
+**Note:** `TRIM()` removes leading and trailing characters, not every occurrence inside a string.
+
+---
+
+## 23. String Function: LPAD()
+
+The `LPAD()` function adds characters to the left side of a string until it reaches the specified length.
+
+### Syntax
+
+```sql
+LPAD(string, target_length, padding_string)
+```
+
+### Example
+
+```sql
+SELECT LPAD('25', 5, '0') AS Result;
+```
+
+**Output:** `00025`
+
+**Explanation:** Adds zeros to the left until the result contains five characters.
+
+Another example:
+
+```sql
+SELECT LPAD('SQL', 6, '*') AS Result;
+```
+
+**Output:** `***SQL`
+
+**Note:** If the original string is longer than the requested target length, MySQL truncates it to that length.
+
+---
+
+## 24. String Function: RPAD()
+
+The `RPAD()` function adds characters to the right side of a string until it reaches the specified length.
+
+### Syntax
+
+```sql
+RPAD(string, target_length, padding_string)
+```
+
+### Example
+
+```sql
+SELECT RPAD('25', 5, '0') AS Result;
+```
+
+**Output:** `25000`
+
+**Explanation:** Adds zeros to the right until the result contains five characters.
+
+Another example:
+
+```sql
+SELECT RPAD('SQL', 6, '*') AS Result;
+```
+
+**Output:** `SQL***`
+
+**Note:** If the original string is longer than the requested target length, MySQL truncates it to that length.
+
+### LPAD() vs RPAD()
+
+- `LPAD()` adds padding on the left.
+- `RPAD()` adds padding on the right.
+
+---
+
+## 25. String Function: LOCATE()
+
+The `LOCATE()` function finds the position of a substring within a string.
+
+### Syntax
+
+```sql
+LOCATE(substring, string)
+```
+
+It returns the position of the first match. If the substring is not found, it returns `0`.
+
+### Example
+
+```sql
+SELECT LOCATE('SQL', 'MySQL Database') AS Result;
+```
+
+**Output:** `3`
+
+**Explanation:** The substring `SQL` starts at position 3.
+
+### Example with a Starting Position
+
+```sql
+SELECT LOCATE('a', 'Database', 3) AS Result;
+```
+
+**Output:** `4`
+
+**Explanation:** Searches for `a` starting at position 3 and returns the position of the first match found.
+
+**Note:** MySQL string positions start at 1.
+
+---
+
+# Day 10 Summary
+
+## Numeric Functions
+
+- `ROUND()` — Rounds a number.
+- `CEIL()` — Returns the smallest integer greater than or equal to a number.
+- `FLOOR()` — Returns the largest integer less than or equal to a number.
+- `POWER()` — Raises a number to an exponent.
+- `SQRT()` — Calculates the square root.
+- `ABS()` — Returns the absolute value.
+- `MOD()` — Returns the remainder.
+- `RAND()` — Generates a pseudo-random number.
+- `SIGN()` — Identifies whether a number is negative, zero, or positive.
+- `GREATEST()` — Returns the largest argument.
+- `LEAST()` — Returns the smallest argument.
+
+## String Functions
+
+- `UPPER()` — Converts text to uppercase.
+- `LOWER()` — Converts text to lowercase.
+- `LENGTH()` — Counts bytes.
+- `CHAR_LENGTH()` — Counts characters.
+- `SUBSTRING()` — Extracts part of a string.
+- `LEFT()` — Returns characters from the left.
+- `RIGHT()` — Returns characters from the right.
+- `CONCAT()` — Joins strings.
+- `CONCAT_WS()` — Joins strings with a separator.
+- `REPLACE()` — Replaces matching text.
+- `TRIM()` — Removes characters from the beginning or end.
+- `LPAD()` — Adds padding to the left.
+- `RPAD()` — Adds padding to the right.
+- `LOCATE()` — Finds the position of a substring.
+
+These functions make it easier to calculate numeric values and manipulate text in MySQL queries.
