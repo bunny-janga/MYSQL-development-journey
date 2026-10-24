@@ -1,0 +1,574 @@
+# Day 9 — MySQL Operators, Predicates, and Column Aliases
+
+## 1. Arithmetic Operators
+
+Arithmetic operators are used to perform mathematical calculations on numeric values.
+
+| Operator | Meaning | Example |
+|---|---|---|
+| `+` | Addition | `10 + 5` |
+| `-` | Subtraction | `10 - 5` |
+| `*` | Multiplication | `10 * 5` |
+| `/` | Division | `10 / 5` |
+| `%` | Modulus (remainder) | `10 % 3` |
+| `DIV` | Integer division | `10 DIV 3` |
+
+### Example
+
+```sql
+SELECT
+    10 + 5 AS Addition,
+    10 - 5 AS Subtraction,
+    10 * 5 AS Multiplication,
+    10 / 5 AS Division,
+    10 % 3 AS Remainder,
+    10 DIV 3 AS IntegerDivision;
+```
+
+**Explanation:** This query performs different mathematical calculations and displays each result with a meaningful column name.
+
+---
+
+## 2. Relational Operators
+
+Relational operators, also called comparison operators, compare two values. They return a true or false result, represented in MySQL as `1` or `0` in simple comparisons.
+
+| Operator | Meaning |
+|---|---|
+| `=` | Equal to |
+| `!=` or `<>` | Not equal to |
+| `>` | Greater than |
+| `<` | Less than |
+| `>=` | Greater than or equal to |
+| `<=` | Less than or equal to |
+
+### Example
+
+```sql
+SELECT *
+FROM Students
+WHERE marks >= 80;
+```
+
+**Explanation:** This query displays students whose marks are greater than or equal to 80.
+
+Another example:
+
+```sql
+SELECT 10 > 5 AS Result;
+```
+
+**Explanation:** The result is `1` because 10 is greater than 5.
+
+---
+
+## 3. Logical Operators
+
+Logical operators combine or reverse conditions in SQL queries.
+
+| Operator | Meaning |
+|---|---|
+| `AND` | All conditions must be true |
+| `OR` | At least one condition must be true |
+| `NOT` | Reverses a condition |
+
+### AND Example
+
+```sql
+SELECT *
+FROM Students
+WHERE marks >= 70 AND age >= 18;
+```
+
+**Explanation:** Displays students who have at least 70 marks and are at least 18 years old.
+
+### OR Example
+
+```sql
+SELECT *
+FROM Students
+WHERE city = 'Hyderabad' OR city = 'Vizag';
+```
+
+**Explanation:** Displays students who live in either Hyderabad or Vizag.
+
+### NOT Example
+
+```sql
+SELECT *
+FROM Students
+WHERE NOT city = 'Hyderabad';
+```
+
+**Explanation:** Displays students whose city is not Hyderabad. Rows with a `NULL` city are not included because the comparison is unknown.
+
+---
+
+## 4. Bitwise Operators
+
+Bitwise operators perform operations on the individual bits of integer values.
+
+| Operator | Meaning |
+|---|---|
+| `&` | Bitwise AND |
+| `\|` | Bitwise OR |
+| `^` | Bitwise XOR |
+| `~` | Bitwise inversion |
+| `<<` | Left shift |
+| `>>` | Right shift |
+
+### Example
+
+```sql
+SELECT
+    5 & 3 AS BitwiseAND,
+    5 | 3 AS BitwiseOR,
+    5 ^ 3 AS BitwiseXOR,
+    5 << 1 AS LeftShift,
+    5 >> 1 AS RightShift;
+```
+
+**Explanation:** MySQL performs these operations on the binary representations of the integer values.
+
+For example, 5 is `0101` and 3 is `0011` in four-bit binary notation.
+
+- Bitwise AND produces `0001`, which is 1.
+- Bitwise OR produces `0111`, which is 7.
+- Bitwise XOR produces `0110`, which is 6.
+
+**Note:** Bitwise inversion (`~`) depends on MySQL's integer representation and is not simply a four-bit inversion.
+
+---
+
+## 5. Assignment Operators
+
+Assignment operators assign values to variables or update values in supported SQL contexts.
+
+### Using SET
+
+```sql
+SET @total = 100;
+SELECT @total AS Total;
+```
+
+**Explanation:** The variable `@total` is assigned the value 100.
+
+MySQL also supports compound assignment operators in suitable expressions, such as:
+
+```sql
+SET @total = 100;
+SET @total = @total + 50;
+
+SELECT @total AS UpdatedTotal;
+```
+
+**Explanation:** The variable is updated to 150.
+
+In MySQL, `=` is commonly used to assign values in `SET` statements and to compare values in conditions. Do not confuse variable assignment with the `UPDATE` statement used to modify table records.
+
+---
+
+## 6. Special Operator: EXISTS
+
+The `EXISTS` operator checks whether a subquery returns at least one row.
+
+- Returns true if the subquery returns one or more rows.
+- Returns false if the subquery returns no rows.
+
+### Syntax
+
+```sql
+SELECT column_name
+FROM table_name
+WHERE EXISTS (
+    SELECT column_name
+    FROM another_table
+    WHERE condition
+);
+```
+
+### Example
+
+Assume `Students` contains student records and `Payments` contains payment records.
+
+```sql
+SELECT s.student_id, s.name
+FROM Students AS s
+WHERE EXISTS (
+    SELECT 1
+    FROM Payments AS p
+    WHERE p.student_id = s.student_id
+);
+```
+
+**Explanation:** Displays students who have at least one matching payment record.
+
+`SELECT 1` is commonly used because `EXISTS` checks whether a row exists, not the selected value.
+
+---
+
+## 7. BETWEEN Operator
+
+The `BETWEEN` operator checks whether a value falls within a specified range. The range includes both boundary values.
+
+### Syntax
+
+```sql
+SELECT column_name
+FROM table_name
+WHERE column_name BETWEEN lower_value AND upper_value;
+```
+
+### Example
+
+```sql
+SELECT *
+FROM Students
+WHERE marks BETWEEN 60 AND 90;
+```
+
+**Explanation:** Displays students whose marks are from 60 through 90, including both 60 and 90.
+
+### NOT BETWEEN
+
+```sql
+SELECT *
+FROM Students
+WHERE marks NOT BETWEEN 60 AND 90;
+```
+
+**Explanation:** Displays students whose marks are outside that range. Rows with `NULL` marks are not included.
+
+---
+
+## 8. IN Operator
+
+The `IN` operator checks whether a value matches any value in a specified list or subquery.
+
+### Syntax
+
+```sql
+SELECT column_name
+FROM table_name
+WHERE column_name IN (value1, value2, value3);
+```
+
+### Example
+
+```sql
+SELECT *
+FROM Students
+WHERE city IN ('Hyderabad', 'Vizag', 'Guntur');
+```
+
+**Explanation:** Displays students whose city is Hyderabad, Vizag, or Guntur.
+
+### NOT IN
+
+```sql
+SELECT *
+FROM Students
+WHERE city NOT IN ('Hyderabad', 'Vizag');
+```
+
+**Explanation:** Displays students whose city is neither Hyderabad nor Vizag, excluding rows where `city` is `NULL`.
+
+**Important:** `NULL` values inside a `NOT IN` list can affect the result. If the list comes from a subquery, handle possible `NULL` values carefully.
+
+---
+
+## 9. LIKE Operator — Recap
+
+The `LIKE` operator searches for a text pattern.
+
+### Wildcard Characters
+
+| Wildcard | Meaning |
+|---|---|
+| `%` | Matches zero or more characters |
+| `_` | Matches exactly one character |
+
+### Starts With
+
+```sql
+SELECT *
+FROM Students
+WHERE name LIKE 'A%';
+```
+
+**Explanation:** Finds names that start with A.
+
+### Ends With
+
+```sql
+SELECT *
+FROM Students
+WHERE name LIKE '%a';
+```
+
+**Explanation:** Finds names that end with a.
+
+### Contains
+
+```sql
+SELECT *
+FROM Students
+WHERE name LIKE '%an%';
+```
+
+**Explanation:** Finds names containing the sequence `an`.
+
+### Single Character Match
+
+```sql
+SELECT *
+FROM Students
+WHERE name LIKE 'A_i';
+```
+
+**Explanation:** Matches names with three characters, starting with A and ending with i.
+
+**Note:** Whether `LIKE` is case-sensitive depends on the collation of the expression or column.
+
+---
+
+## 10. ISNULL() Function
+
+The `ISNULL()` function checks whether an expression is `NULL`.
+
+- Returns `1` if the expression is `NULL`.
+- Returns `0` otherwise.
+
+### Syntax
+
+```sql
+ISNULL(expression)
+```
+
+### Example
+
+```sql
+SELECT
+    ISNULL(NULL) AS FirstResult,
+    ISNULL(100) AS SecondResult;
+```
+
+**Explanation:** `FirstResult` is 1, and `SecondResult` is 0.
+
+### Example with a Table
+
+```sql
+SELECT name, ISNULL(phone) AS PhoneMissing
+FROM Students;
+```
+
+**Explanation:** Displays each student's name and returns 1 when the phone value is `NULL`; otherwise, it returns 0.
+
+---
+
+## 11. Column Aliases (AS)
+
+A column alias gives a temporary, readable name to a column or calculated expression in the query result.
+
+### Syntax
+
+```sql
+SELECT column_name AS alias_name
+FROM table_name;
+```
+
+### Example
+
+```sql
+SELECT name AS StudentName,
+       marks AS TotalMarks
+FROM Students;
+```
+
+**Explanation:** Displays `name` under the heading `StudentName` and `marks` under `TotalMarks`.
+
+### Alias for a Calculation
+
+```sql
+SELECT name, marks + 5 AS UpdatedMarks
+FROM Students;
+```
+
+**Explanation:** Displays marks increased by 5 under the heading `UpdatedMarks`. It does not change the stored marks in the table.
+
+### Alias for Aggregate Functions
+
+```sql
+SELECT city, COUNT(*) AS TotalStudents
+FROM Students
+GROUP BY city;
+```
+
+**Explanation:** Displays the student count for each city under the heading `TotalStudents`.
+
+**Important:** Column aliases affect the query output, not the original table structure. The `AS` keyword is optional for many column aliases, but using it makes queries easier to read.
+
+---
+
+## 12. Predicates: BETWEEN
+
+A predicate is an expression used to evaluate a condition in a query. `BETWEEN` is one type of predicate.
+
+### Example
+
+```sql
+SELECT *
+FROM Products
+WHERE price BETWEEN 500 AND 1500;
+```
+
+**Explanation:** Displays products priced from 500 to 1500, including both limits.
+
+### Using NOT BETWEEN
+
+```sql
+SELECT *
+FROM Products
+WHERE price NOT BETWEEN 500 AND 1500;
+```
+
+**Explanation:** Displays products priced below 500 or above 1500. Products with `NULL` prices are not returned.
+
+**Remember:** `BETWEEN` includes both the lower and upper boundaries.
+
+---
+
+## 13. Predicate: IN
+
+The `IN` predicate checks whether a value matches any item in a list or the results of a subquery.
+
+### Example
+
+```sql
+SELECT *
+FROM Products
+WHERE category IN ('Electronics', 'Furniture', 'Books');
+```
+
+**Explanation:** Displays products belonging to any of the three listed categories.
+
+### Using IN with a Subquery
+
+```sql
+SELECT name
+FROM Students
+WHERE student_id IN (
+    SELECT student_id
+    FROM Payments
+);
+```
+
+**Explanation:** Displays students whose IDs appear in the `Payments` table.
+
+---
+
+## 14. Predicate: LIKE
+
+The `LIKE` predicate compares a text value against a pattern.
+
+### Examples
+
+```sql
+-- Names starting with S
+SELECT *
+FROM Students
+WHERE name LIKE 'S%';
+
+-- Names ending with n
+SELECT *
+FROM Students
+WHERE name LIKE '%n';
+
+-- Names containing 'ra'
+SELECT *
+FROM Students
+WHERE name LIKE '%ra%';
+
+-- Names with exactly four characters
+SELECT *
+FROM Students
+WHERE name LIKE '____';
+```
+
+**Explanation:** `%` matches any number of characters, while each underscore (`_`) matches one character.
+
+---
+
+## 15. IS NULL
+
+`NULL` represents a missing or unknown value. It is not the same as zero, an empty string, or ordinary text.
+
+Use `IS NULL` to find rows where a column has a `NULL` value.
+
+### Syntax
+
+```sql
+SELECT column_name
+FROM table_name
+WHERE column_name IS NULL;
+```
+
+### Example
+
+```sql
+SELECT *
+FROM Students
+WHERE phone IS NULL;
+```
+
+**Explanation:** Displays students whose phone value is missing (`NULL`).
+
+### IS NOT NULL
+
+```sql
+SELECT *
+FROM Students
+WHERE phone IS NOT NULL;
+```
+
+**Explanation:** Displays students whose phone value is not `NULL`.
+
+### Why Not Use = NULL?
+
+Incorrect:
+
+```sql
+SELECT *
+FROM Students
+WHERE phone = NULL;
+```
+
+Correct:
+
+```sql
+SELECT *
+FROM Students
+WHERE phone IS NULL;
+```
+
+**Explanation:** Ordinary comparison operators such as `=` do not test for `NULL` correctly. Use `IS NULL` or `IS NOT NULL`.
+
+---
+
+## Day 9 Summary
+
+- **Arithmetic operators:** Perform mathematical calculations.
+- **Relational operators:** Compare two values.
+- **Logical operators:** Combine or reverse conditions.
+- **Bitwise operators:** Perform operations on integer bits.
+- **Assignment:** Assign or update variable values.
+- **EXISTS:** Checks whether a subquery returns any rows.
+- **BETWEEN:** Checks whether a value is within an inclusive range.
+- **IN:** Checks whether a value matches an item in a list or subquery.
+- **LIKE:** Matches text patterns using `%` and `_`.
+- **ISNULL():** Returns 1 for `NULL` and 0 otherwise.
+- **Column aliases:** Give readable temporary names to query results.
+- **IS NULL:** Finds missing (`NULL`) values.
+- **IS NOT NULL:** Finds values that are not `NULL`.
+
+These operators and predicates help write flexible MySQL queries for filtering, comparing, searching, and presenting data.
