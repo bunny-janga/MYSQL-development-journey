@@ -1,0 +1,763 @@
+# Day 11 — MySQL Date/Time, Aggregate, and System Functions
+
+## 1. Date/Time Function: NOW()
+
+The `NOW()` function returns the current date and time according to the MySQL session's time zone.
+
+### Syntax
+
+```sql
+NOW()
+```
+
+### Example
+
+```sql
+SELECT NOW() AS CurrentDateTime;
+```
+
+**Example output:**
+
+```text
+2026-10-25 22:30:00
+```
+
+**Explanation:** Displays the current date and time when the query runs. The output shown above is only an example; your result will depend on when you execute the query.
+
+---
+
+## 2. Date/Time Function: CURDATE()
+
+The `CURDATE()` function returns the current date without the time.
+
+### Syntax
+
+```sql
+CURDATE()
+```
+
+### Example
+
+```sql
+SELECT CURDATE() AS Today;
+```
+
+**Example output:**
+
+```text
+2026-10-25
+```
+
+**Explanation:** Returns the current date in `YYYY-MM-DD` format.
+
+---
+
+## 3. Date/Time Function: CURTIME()
+
+The `CURTIME()` function returns the current time without the date.
+
+### Syntax
+
+```sql
+CURTIME()
+```
+
+### Example
+
+```sql
+SELECT CURTIME() AS CurrentTime;
+```
+
+**Example output:**
+
+```text
+22:30:00
+```
+
+**Explanation:** Displays the current time according to the MySQL session's time zone.
+
+---
+
+## 4. Date/Time Function: YEAR()
+
+The `YEAR()` function extracts the year from a date or date-time value.
+
+### Syntax
+
+```sql
+YEAR(date)
+```
+
+### Example
+
+```sql
+SELECT YEAR('2026-10-25') AS YearValue;
+```
+
+**Output:**
+
+```text
+2026
+```
+
+**Explanation:** Extracts the year `2026` from the given date.
+
+---
+
+## 5. Date/Time Function: MONTH()
+
+The `MONTH()` function extracts the month number from a date.
+
+### Syntax
+
+```sql
+MONTH(date)
+```
+
+### Example
+
+```sql
+SELECT MONTH('2026-10-25') AS MonthValue;
+```
+
+**Output:**
+
+```text
+10
+```
+
+**Explanation:** October is the tenth month of the year, so the result is `10`.
+
+---
+
+## 6. Date/Time Function: DAY()
+
+The `DAY()` function returns the day of the month from a date. It is equivalent to `DAYOFMONTH()`.
+
+### Syntax
+
+```sql
+DAY(date)
+```
+
+### Example
+
+```sql
+SELECT DAY('2026-10-25') AS DayValue;
+```
+
+**Output:**
+
+```text
+25
+```
+
+**Explanation:** Returns `25` because the given date is the 25th day of the month.
+
+---
+
+## 7. Date/Time Function: DAYNAME()
+
+The `DAYNAME()` function returns the name of the weekday for a given date.
+
+### Syntax
+
+```sql
+DAYNAME(date)
+```
+
+### Example
+
+```sql
+SELECT DAYNAME('2026-10-25') AS Weekday;
+```
+
+**Output:**
+
+```text
+Sunday
+```
+
+**Explanation:** Returns the weekday name for the supplied date. The language of the result depends on the MySQL `lc_time_names` setting.
+
+---
+
+## 8. Date/Time Function: DATEDIFF()
+
+The `DATEDIFF()` function calculates the difference between two dates in days.
+
+### Syntax
+
+```sql
+DATEDIFF(date1, date2)
+```
+
+The result is calculated as `date1 - date2`. Any time portions are ignored.
+
+### Example
+
+```sql
+SELECT DATEDIFF('2026-10-25', '2026-10-20') AS DaysDifference;
+```
+
+**Output:**
+
+```text
+5
+```
+
+**Explanation:** There are five days between October 20 and October 25, 2026.
+
+Another example:
+
+```sql
+SELECT DATEDIFF('2026-10-20', '2026-10-25') AS DaysDifference;
+```
+
+**Output:**
+
+```text
+-5
+```
+
+**Explanation:** Reversing the date order produces a negative result.
+
+---
+
+## 9. Date/Time Function: DATE_ADD()
+
+The `DATE_ADD()` function adds a specified time interval to a date or date-time value.
+
+### Syntax
+
+```sql
+DATE_ADD(date, INTERVAL value unit)
+```
+
+### Example
+
+```sql
+SELECT DATE_ADD('2026-10-25', INTERVAL 7 DAY) AS NewDate;
+```
+
+**Output:**
+
+```text
+2026-11-01
+```
+
+**Explanation:** Adds seven days to October 25, 2026.
+
+Another example:
+
+```sql
+SELECT DATE_ADD('2026-10-25', INTERVAL 2 MONTH) AS NewDate;
+```
+
+**Output:**
+
+```text
+2026-12-25
+```
+
+**Explanation:** Adds two months to the original date.
+
+Common interval units include `DAY`, `MONTH`, `YEAR`, `HOUR`, `MINUTE`, and `SECOND`.
+
+---
+
+## 10. Date/Time Function: DATE_SUB()
+
+The `DATE_SUB()` function subtracts a specified time interval from a date or date-time value.
+
+### Syntax
+
+```sql
+DATE_SUB(date, INTERVAL value unit)
+```
+
+### Example
+
+```sql
+SELECT DATE_SUB('2026-10-25', INTERVAL 7 DAY) AS PreviousDate;
+```
+
+**Output:**
+
+```text
+2026-10-18
+```
+
+**Explanation:** Subtracts seven days from October 25, 2026.
+
+Another example:
+
+```sql
+SELECT DATE_SUB('2026-10-25', INTERVAL 1 MONTH) AS PreviousDate;
+```
+
+**Output:**
+
+```text
+2026-09-25
+```
+
+**Explanation:** Subtracts one month from the given date.
+
+---
+
+## 11. Date/Time Function: DATE_FORMAT()
+
+The `DATE_FORMAT()` function displays a date or date-time value in a format you choose.
+
+### Syntax
+
+```sql
+DATE_FORMAT(date, format)
+```
+
+### Common Format Specifiers
+
+| Specifier | Meaning | Example |
+|---|---|---|
+| `%Y` | Four-digit year | `2026` |
+| `%y` | Two-digit year | `26` |
+| `%m` | Month number | `10` |
+| `%M` | Full month name | `October` |
+| `%d` | Day of the month | `25` |
+| `%W` | Full weekday name | `Sunday` |
+| `%H` | Hour, 00–23 | `14` |
+| `%i` | Minutes | `30` |
+| `%s` | Seconds | `45` |
+
+### Example
+
+```sql
+SELECT DATE_FORMAT(
+    '2026-10-25 14:30:45',
+    '%d-%m-%Y'
+) AS FormattedDate;
+```
+
+**Output:**
+
+```text
+25-10-2026
+```
+
+Another example:
+
+```sql
+SELECT DATE_FORMAT(
+    '2026-10-25 14:30:45',
+    '%W, %M %d, %Y'
+) AS FormattedDate;
+```
+
+**Output:**
+
+```text
+Sunday, October 25, 2026
+```
+
+**Explanation:** The format string controls how the date is displayed. It does not change the original stored date.
+
+---
+
+## 12. Date/Time Function: STR_TO_DATE()
+
+The `STR_TO_DATE()` function converts a string into a date or date-time value using a specified format.
+
+### Syntax
+
+```sql
+STR_TO_DATE(string, format)
+```
+
+### Example
+
+```sql
+SELECT STR_TO_DATE('25-10-2026', '%d-%m-%Y') AS ConvertedDate;
+```
+
+**Output:**
+
+```text
+2026-10-25
+```
+
+**Explanation:** MySQL reads the string using the specified day-month-year format and converts it to a date value.
+
+Another example:
+
+```sql
+SELECT STR_TO_DATE(
+    '25-10-2026 14:30:00',
+    '%d-%m-%Y %H:%i:%s'
+) AS ConvertedDateTime;
+```
+
+**Explanation:** Converts a string containing both a date and a time into a date-time value.
+
+**Important:** The format specifiers must match the arrangement of the input string.
+
+---
+
+# Aggregate Functions
+
+Aggregate functions perform calculations on a set of rows and return a single result for each group.
+
+## 13. Aggregate Function: COUNT()
+
+The `COUNT()` function counts rows or non-`NULL` values in a column.
+
+### Syntax
+
+```sql
+COUNT(*)
+COUNT(column_name)
+COUNT(DISTINCT column_name)
+```
+
+### Example: Count All Students
+
+```sql
+SELECT COUNT(*) AS TotalStudents
+FROM Students;
+```
+
+**Explanation:** Counts all rows in the `Students` table, including rows that contain `NULL` values.
+
+### Example: Count Non-NULL Values
+
+```sql
+SELECT COUNT(phone) AS StudentsWithPhone
+FROM Students;
+```
+
+**Explanation:** Counts only rows where `phone` is not `NULL`.
+
+### Example: Count Unique Cities
+
+```sql
+SELECT COUNT(DISTINCT city) AS UniqueCities
+FROM Students;
+```
+
+**Explanation:** Counts the distinct non-`NULL` city values.
+
+---
+
+## 14. Aggregate Function: SUM()
+
+The `SUM()` function calculates the total of numeric values in a column.
+
+### Syntax
+
+```sql
+SUM(column_name)
+```
+
+### Example
+
+Assume a `Sales` table contains a column named `amount`.
+
+```sql
+SELECT SUM(amount) AS TotalSales
+FROM Sales;
+```
+
+**Explanation:** Adds the numeric values in the `amount` column and returns the total. `NULL` values are ignored.
+
+**Note:** If there are no non-`NULL` values to sum, the result is `NULL`.
+
+---
+
+## 15. Aggregate Function: AVG()
+
+The `AVG()` function calculates the average of numeric values in a column.
+
+### Syntax
+
+```sql
+AVG(column_name)
+```
+
+### Example
+
+```sql
+SELECT AVG(marks) AS AverageMarks
+FROM Students;
+```
+
+**Explanation:** Calculates the average of all non-`NULL` values in the `marks` column.
+
+For example, if the marks are 70, 80, and 90, the average is:
+
+```text
+(70 + 80 + 90) / 3 = 80
+```
+
+**Note:** `AVG()` ignores `NULL` values.
+
+---
+
+## 16. Aggregate Function: MAX()
+
+The `MAX()` function returns the largest value in a column or group.
+
+### Syntax
+
+```sql
+MAX(column_name)
+```
+
+### Example
+
+```sql
+SELECT MAX(marks) AS HighestMarks
+FROM Students;
+```
+
+**Explanation:** Returns the highest non-`NULL` value in the `marks` column.
+
+`MAX()` can also be used with dates to find the latest date.
+
+---
+
+## 17. Aggregate Function: MIN()
+
+The `MIN()` function returns the smallest value in a column or group.
+
+### Syntax
+
+```sql
+MIN(column_name)
+```
+
+### Example
+
+```sql
+SELECT MIN(marks) AS LowestMarks
+FROM Students;
+```
+
+**Explanation:** Returns the lowest non-`NULL` value in the `marks` column.
+
+`MIN()` can also be used with dates to find the earliest date.
+
+### Using Aggregate Functions Together
+
+```sql
+SELECT
+    COUNT(*) AS TotalStudents,
+    SUM(marks) AS TotalMarks,
+    AVG(marks) AS AverageMarks,
+    MAX(marks) AS HighestMarks,
+    MIN(marks) AS LowestMarks
+FROM Students;
+```
+
+**Explanation:** This query calculates five summaries from the `Students` table in one query.
+
+---
+
+# System Functions
+
+System functions provide information about the current MySQL server, database session, user, or connection.
+
+## 18. System Function: VERSION()
+
+The `VERSION()` function returns the version of the MySQL server.
+
+### Syntax
+
+```sql
+VERSION()
+```
+
+### Example
+
+```sql
+SELECT VERSION() AS MySQLVersion;
+```
+
+**Example output:**
+
+```text
+8.0.36
+```
+
+**Explanation:** Displays the installed server version. The actual version depends on your MySQL installation.
+
+---
+
+## 19. System Function: DATABASE()
+
+The `DATABASE()` function returns the name of the default database currently selected for the session.
+
+### Syntax
+
+```sql
+DATABASE()
+```
+
+### Example
+
+```sql
+SELECT DATABASE() AS CurrentDatabase;
+```
+
+**Example output:**
+
+```text
+college_db
+```
+
+**Explanation:** If `college_db` is the selected database, the query returns that name.
+
+To select a database first, use:
+
+```sql
+USE college_db;
+```
+
+**Note:** If no default database has been selected, `DATABASE()` returns `NULL`.
+
+---
+
+## 20. System Function: USER()
+
+The `USER()` function returns the MySQL username and client host presented when the current connection was established.
+
+### Syntax
+
+```sql
+USER()
+```
+
+### Example
+
+```sql
+SELECT USER() AS ConnectedUser;
+```
+
+**Example output:**
+
+```text
+student@localhost
+```
+
+**Explanation:** The output depends on the username and host used by your connection.
+
+**Important:** `USER()` is not always the same as `CURRENT_USER()`, which identifies the MySQL account used for privilege checking.
+
+---
+
+## 21. System Function: CONNECTION_ID()
+
+The `CONNECTION_ID()` function returns the identifier of the current client connection.
+
+### Syntax
+
+```sql
+CONNECTION_ID()
+```
+
+### Example
+
+```sql
+SELECT CONNECTION_ID() AS ConnectionID;
+```
+
+**Example output:**
+
+```text
+15
+```
+
+**Explanation:** The number identifies the current connection on the server. Your result may be different.
+
+The connection ID is useful when checking which session is running a query.
+
+---
+
+## 22. System Function: LAST_INSERT_ID()
+
+The `LAST_INSERT_ID()` function returns the most recently generated `AUTO_INCREMENT` value for the current connection.
+
+### Example
+
+First, create a table:
+
+```sql
+CREATE TABLE Employees (
+    employee_id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_name VARCHAR(100)
+);
+```
+
+Insert a record:
+
+```sql
+INSERT INTO Employees (employee_name)
+VALUES ('Rahul');
+```
+
+Now retrieve the generated ID:
+
+```sql
+SELECT LAST_INSERT_ID() AS NewEmployeeID;
+```
+
+**Example output:**
+
+```text
+1
+```
+
+**Explanation:** If MySQL generated `1` for the inserted employee, the function returns `1` for that connection.
+
+**Important points:**
+
+- Call `LAST_INSERT_ID()` in the same connection where the insert happened.
+- It is useful when retrieving automatically generated IDs.
+- It does not necessarily return the largest ID currently present in the table.
+- If an insert generates no new `AUTO_INCREMENT` value, it may not update the function's stored value.
+
+---
+
+# Day 11 Summary
+
+## Date and Time Functions
+
+- `NOW()` — Returns the current date and time.
+- `CURDATE()` — Returns the current date.
+- `CURTIME()` — Returns the current time.
+- `YEAR()` — Extracts the year.
+- `MONTH()` — Extracts the month number.
+- `DAY()` — Extracts the day of the month.
+- `DAYNAME()` — Returns the weekday name.
+- `DATEDIFF()` — Calculates the difference between two dates in days.
+- `DATE_ADD()` — Adds a time interval.
+- `DATE_SUB()` — Subtracts a time interval.
+- `DATE_FORMAT()` — Formats a date for display.
+- `STR_TO_DATE()` — Converts a formatted string into a date or date-time value.
+
+## Aggregate Functions
+
+- `COUNT()` — Counts rows or non-`NULL` values.
+- `SUM()` — Calculates a total.
+- `AVG()` — Calculates an average.
+- `MAX()` — Finds the largest value.
+- `MIN()` — Finds the smallest value.
+
+## System Functions
+
+- `VERSION()` — Returns the MySQL server version.
+- `DATABASE()` — Returns the selected database name.
+- `USER()` — Returns the connection username and client host.
+- `CONNECTION_ID()` — Returns the current connection ID.
+- `LAST_INSERT_ID()` — Returns the latest generated `AUTO_INCREMENT` value for the current connection.
+
+These functions help us work with dates, summarize data, and retrieve useful information about a MySQL session.
