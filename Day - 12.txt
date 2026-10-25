@@ -1,0 +1,325 @@
+# Day 12 — Database Normalization (1NF, 2NF, and 3NF)
+
+## Introduction to Normalization
+
+Database normalization is the process of organizing data into tables to reduce duplication and improve data consistency.
+
+When we store all information in one large table, the same data may be repeated many times. This can cause problems when inserting, updating, or deleting records.
+
+Normalization helps us organize data into related tables and connect them using keys.
+
+### Why Is Normalization Important?
+
+- Reduces unnecessary data duplication.
+- Helps maintain data consistency.
+- Makes updates easier.
+- Prevents insertion, update, and deletion anomalies.
+- Organizes database tables more clearly.
+
+The three normal forms covered in this lesson are:
+
+1. First Normal Form (1NF)
+2. Second Normal Form (2NF)
+3. Third Normal Form (3NF)
+
+---
+
+## 1. First Normal Form (1NF)
+
+### What Is First Normal Form?
+
+A table is in First Normal Form (1NF) when each column contains a single value in each row, and there are no repeating groups of values.
+
+In simple words, **each cell should contain one value, not a list of values**.
+
+### Example: Table Not in 1NF
+
+Consider this `Students` table:
+
+| StudentID | StudentName | PhoneNumbers |
+|---|---|---|
+| 1 | Rahul | 9876543210, 9123456780 |
+| 2 | Priya | 9988776655 |
+
+The `PhoneNumbers` column contains multiple phone numbers in one cell. This makes the table difficult to search and update properly.
+
+### Converting the Table into 1NF
+
+We can store one phone number in each row.
+
+| StudentID | StudentName | PhoneNumber |
+|---|---|---|
+| 1 | Rahul | 9876543210 |
+| 1 | Rahul | 9123456780 |
+| 2 | Priya | 9988776655 |
+
+Now each cell contains a single value.
+
+For this design, a suitable primary key could be the combination of `StudentID` and `PhoneNumber`, assuming a student cannot have duplicate phone-number entries.
+
+### SQL Example
+
+```sql
+CREATE TABLE StudentPhones (
+    StudentID INT,
+    StudentName VARCHAR(100),
+    PhoneNumber VARCHAR(15),
+    PRIMARY KEY (StudentID, PhoneNumber)
+);
+```
+
+Insert the records:
+
+```sql
+INSERT INTO StudentPhones
+    (StudentID, StudentName, PhoneNumber)
+VALUES
+    (1, 'Rahul', '9876543210'),
+    (1, 'Rahul', '9123456780'),
+    (2, 'Priya', '9988776655');
+```
+
+### Key Points of 1NF
+
+- Each cell contains a single value.
+- No repeating groups or lists in a column.
+- Each row can be uniquely identified by a key.
+- Data is arranged in a clear tabular structure.
+
+**Remember:** 1NF focuses on making values atomic, meaning each cell stores one value appropriate to the column.
+
+---
+
+## 2. Second Normal Form (2NF)
+
+### What Is Second Normal Form?
+
+A table is in Second Normal Form (2NF) when:
+
+1. It already satisfies First Normal Form (1NF).
+2. Every non-key attribute depends on the whole candidate key, not just part of a composite key.
+
+This means 2NF removes **partial dependencies**.
+
+A partial dependency occurs when a non-key column depends on only part of a composite primary key.
+
+### Example: Table Not in 2NF
+
+Consider a table that records which students enroll in which courses.
+
+| StudentID | CourseID | StudentName | CourseName | Marks |
+|---|---|---|---|---|
+| 1 | C101 | Rahul | Python | 85 |
+| 1 | C102 | Rahul | MySQL | 90 |
+| 2 | C101 | Priya | Python | 88 |
+
+Assume the primary key is `(StudentID, CourseID)`.
+
+Here:
+
+- `StudentName` depends only on `StudentID`.
+- `CourseName` depends only on `CourseID`.
+- `Marks` depends on the combination of `StudentID` and `CourseID`.
+
+Therefore, `StudentName` and `CourseName` have partial dependencies on the composite key.
+
+The table violates 2NF.
+
+### Converting the Table into 2NF
+
+We can divide the information into three tables.
+
+**Students table**
+
+| StudentID | StudentName |
+|---|---|
+| 1 | Rahul |
+| 2 | Priya |
+
+**Courses table**
+
+| CourseID | CourseName |
+|---|---|
+| C101 | Python |
+| C102 | MySQL |
+
+**Enrollments table**
+
+| StudentID | CourseID | Marks |
+|---|---|---|
+| 1 | C101 | 85 |
+| 1 | C102 | 90 |
+| 2 | C101 | 88 |
+
+Now student details depend on `StudentID`, course details depend on `CourseID`, and marks depend on the student-course combination.
+
+### SQL Example
+
+```sql
+CREATE TABLE Students (
+    StudentID INT PRIMARY KEY,
+    StudentName VARCHAR(100)
+);
+
+CREATE TABLE Courses (
+    CourseID VARCHAR(10) PRIMARY KEY,
+    CourseName VARCHAR(100)
+);
+
+CREATE TABLE Enrollments (
+    StudentID INT,
+    CourseID VARCHAR(10),
+    Marks INT,
+    PRIMARY KEY (StudentID, CourseID),
+    FOREIGN KEY (StudentID) REFERENCES Students(StudentID),
+    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID)
+);
+```
+
+### Key Points of 2NF
+
+- The table must already be in 1NF.
+- It removes partial dependencies.
+- Non-key attributes must depend on the whole candidate key.
+- It is especially important when a table uses a composite key.
+
+**Remember:** 2NF means every non-key attribute depends on the whole key, not just part of it.
+
+---
+
+## 3. Third Normal Form (3NF) — Practical Normalization
+
+### What Is Third Normal Form?
+
+A table is in Third Normal Form (3NF) when:
+
+1. It already satisfies Second Normal Form (2NF).
+2. Non-key attributes do not depend transitively on a candidate key through another non-key attribute.
+
+In simple words, **non-key columns should depend on the key, the whole key, and nothing but the key**.
+
+A transitive dependency occurs when one non-key attribute determines another non-key attribute.
+
+### Example: Table Not in 3NF
+
+Consider this `Employees` table:
+
+| EmployeeID | EmployeeName | DepartmentID | DepartmentName |
+|---|---|---|---|
+| 101 | Rahul | D01 | IT |
+| 102 | Priya | D02 | HR |
+| 103 | Arun | D01 | IT |
+
+Assume `EmployeeID` is the primary key.
+
+Here:
+
+- `EmployeeName` depends on `EmployeeID`.
+- `DepartmentID` depends on `EmployeeID`.
+- `DepartmentName` depends on `DepartmentID`.
+
+The dependency is:
+
+`EmployeeID → DepartmentID → DepartmentName`
+
+This means `DepartmentName` depends indirectly on `EmployeeID` through `DepartmentID`. It is a transitive dependency, so the table violates 3NF.
+
+### Converting the Table into 3NF
+
+Separate employee details and department details.
+
+**Employees table**
+
+| EmployeeID | EmployeeName | DepartmentID |
+|---|---|---|
+| 101 | Rahul | D01 |
+| 102 | Priya | D02 |
+| 103 | Arun | D01 |
+
+**Departments table**
+
+| DepartmentID | DepartmentName |
+|---|---|
+| D01 | IT |
+| D02 | HR |
+
+Now department names are stored once in the `Departments` table.
+
+### SQL Example
+
+```sql
+CREATE TABLE Departments (
+    DepartmentID VARCHAR(10) PRIMARY KEY,
+    DepartmentName VARCHAR(100)
+);
+
+CREATE TABLE Employees (
+    EmployeeID INT PRIMARY KEY,
+    EmployeeName VARCHAR(100),
+    DepartmentID VARCHAR(10),
+    FOREIGN KEY (DepartmentID)
+        REFERENCES Departments(DepartmentID)
+);
+```
+
+### Inserting Example Data
+
+```sql
+INSERT INTO Departments (DepartmentID, DepartmentName)
+VALUES
+    ('D01', 'IT'),
+    ('D02', 'HR');
+
+INSERT INTO Employees
+    (EmployeeID, EmployeeName, DepartmentID)
+VALUES
+    (101, 'Rahul', 'D01'),
+    (102, 'Priya', 'D02'),
+    (103, 'Arun', 'D01');
+```
+
+### Viewing Employee and Department Details
+
+We can combine the tables using a `JOIN`.
+
+```sql
+SELECT
+    e.EmployeeID,
+    e.EmployeeName,
+    d.DepartmentName
+FROM Employees AS e
+JOIN Departments AS d
+    ON e.DepartmentID = d.DepartmentID;
+```
+
+**Explanation:** The employee and department information is stored separately but can be retrieved together when needed.
+
+### Key Points of 3NF
+
+- The table must already satisfy 2NF.
+- It removes transitive dependencies involving non-key attributes.
+- Non-key attributes should depend directly on a candidate key.
+- Related information is stored in separate tables and connected through keys.
+
+**Remember:** 3NF reduces duplication caused by storing information about one entity inside another entity's table.
+
+---
+
+## Difference Between 1NF, 2NF, and 3NF
+
+| Normal Form | Main Rule | Removes |
+|---|---|---|
+| 1NF | Each cell contains a single value | Repeating groups and multivalued cells |
+| 2NF | Every non-key attribute depends on the whole candidate key | Partial dependencies |
+| 3NF | Non-key attributes do not depend transitively on a candidate key | Transitive dependencies |
+
+## Day 12 Summary
+
+- **1NF:** Store one value in each cell and avoid repeating groups.
+- **2NF:** Satisfy 1NF and remove partial dependencies.
+- **3NF:** Satisfy 2NF and remove transitive dependencies.
+- **Primary keys** uniquely identify records.
+- **Foreign keys** connect related tables.
+- **Normalization** improves consistency and reduces unnecessary duplication.
+
+In practical database design, normalization helps keep data organized and makes insertions, updates, and deletions more reliable.
