@@ -1,0 +1,563 @@
+# Day 16: Views and Transactions in MySQL
+
+## 1. Purpose of Views
+
+### What is a View?
+
+A **view** is a virtual table created from the result of a SQL query. It displays data from one or more underlying tables without normally storing a separate copy of the result data.
+
+A view can make complex queries easier to reuse and can help control which columns or rows users see.
+
+### Why Do We Use Views?
+
+- **Simplicity:** Hide complex SQL queries behind a simple view name.
+- **Security:** Provide access to selected columns or rows instead of exposing an entire table.
+- **Reusability:** Use the same query logic in multiple places.
+- **Consistency:** Present data in a standard format.
+
+### Example
+
+Suppose we have an `Employees` table:
+
+| employee_id | employee_name | department | salary |
+|---:|---|---|---:|
+| 1 | Ravi | IT | 40000 |
+| 2 | Priya | HR | 35000 |
+| 3 | Kumar | IT | 45000 |
+
+We want to display only employee names and departments.
+
+```sql
+CREATE VIEW Employee_Public AS
+SELECT employee_name, department
+FROM Employees;
+```
+
+To retrieve data from the view:
+
+```sql
+SELECT * FROM Employee_Public;
+```
+
+### Output
+
+| employee_name | department |
+|---|---|
+| Ravi | IT |
+| Priya | HR |
+| Kumar | IT |
+
+The view does not expose the salary column through this query.
+
+**Important:** A view is not automatically a security boundary. Access privileges must also be configured correctly.
+
+---
+
+## 2. CREATE VIEW
+
+### What is CREATE VIEW?
+
+`CREATE VIEW` creates a named view based on a `SELECT` statement.
+
+### Syntax
+
+```sql
+CREATE VIEW view_name AS
+SELECT column1, column2
+FROM table_name
+WHERE condition;
+```
+
+### Example
+
+Create a view that displays employees from the IT department.
+
+```sql
+CREATE VIEW IT_Employees AS
+SELECT employee_id, employee_name, salary
+FROM Employees
+WHERE department = 'IT';
+```
+
+Retrieve the view's data:
+
+```sql
+SELECT * FROM IT_Employees;
+```
+
+### Explanation
+
+- `CREATE VIEW IT_Employees` defines the view name.
+- `AS` introduces the query used to define the view.
+- The `SELECT` statement specifies which rows and columns the view displays.
+
+### Creating a View with Selected Columns
+
+```sql
+CREATE VIEW Employee_Names AS
+SELECT employee_id, employee_name
+FROM Employees;
+```
+
+This view exposes only the employee ID and name through its definition.
+
+**Note:** The underlying table must exist, and you need the appropriate privileges to create the view.
+
+---
+
+## 3. ALTER VIEW
+
+### What is ALTER VIEW?
+
+`ALTER VIEW` changes the definition of an existing view without requiring you to drop it first.
+
+In MySQL, you can use `ALTER VIEW` followed by the new `SELECT` statement.
+
+### Syntax
+
+```sql
+ALTER VIEW view_name AS
+SELECT column1, column2
+FROM table_name
+WHERE condition;
+```
+
+### Example
+
+Suppose the existing view displays IT employees. We want to change it to display employees earning more than 40000.
+
+```sql
+ALTER VIEW IT_Employees AS
+SELECT employee_id, employee_name, salary
+FROM Employees
+WHERE salary > 40000;
+```
+
+Retrieve the updated view:
+
+```sql
+SELECT * FROM IT_Employees;
+```
+
+### Explanation
+
+The view's query has changed. It now displays employees whose salary is greater than 40000, regardless of department.
+
+**Important:** `ALTER VIEW` changes the view definition, not the underlying employee records.
+
+---
+
+## 4. DROP VIEW
+
+### What is DROP VIEW?
+
+`DROP VIEW` permanently removes a view definition from the database.
+
+It does not delete the underlying table or the records stored in that table.
+
+### Syntax
+
+```sql
+DROP VIEW view_name;
+```
+
+### Example
+
+```sql
+DROP VIEW IT_Employees;
+```
+
+To avoid an error if the view does not exist:
+
+```sql
+DROP VIEW IF EXISTS IT_Employees;
+```
+
+### Explanation
+
+After dropping the view, you can no longer query it by that name. The underlying `Employees` table remains unchanged.
+
+### Difference Between DROP TABLE and DROP VIEW
+
+| DROP TABLE | DROP VIEW |
+|---|---|
+| Removes a table and its stored data | Removes a view definition |
+| Removes the table structure | Does not remove the underlying tables |
+| Can cause data loss | Does not delete the underlying table records |
+
+---
+
+## 5. Introduction to Transactions
+
+### What is a Transaction?
+
+A **transaction** is a group of database operations treated as one logical unit of work.
+
+A transaction helps ensure that related changes are completed together or rolled back when necessary.
+
+Transactions are particularly important when updating financial records, transferring money, processing orders, or modifying multiple related tables.
+
+### Example: Bank Transfer
+
+Suppose Ravi transfers 1000 from his account to Priya's account.
+
+Two operations are required:
+
+1. Subtract 1000 from Ravi's account.
+2. Add 1000 to Priya's account.
+
+```sql
+START TRANSACTION;
+
+UPDATE Accounts
+SET balance = balance - 1000
+WHERE account_id = 1;
+
+UPDATE Accounts
+SET balance = balance + 1000
+WHERE account_id = 2;
+
+COMMIT;
+```
+
+### Explanation
+
+Both account updates belong to the same transaction.
+
+- `START TRANSACTION` begins the transaction.
+- The `UPDATE` statements modify the account balances.
+- `COMMIT` makes the transaction's changes permanent.
+
+If a problem occurs before the transaction is committed, you can use `ROLLBACK` to undo the transaction's uncommitted changes.
+
+**Important:** This example assumes both account IDs exist and the application validates the transfer amount and account balances. Real payment systems need additional checks and concurrency controls.
+
+---
+
+## 6. ACID Properties
+
+### What are ACID Properties?
+
+ACID describes four important properties that help make database transactions reliable.
+
+ACID stands for:
+
+- Atomicity
+- Consistency
+- Isolation
+- Durability
+
+### A. Atomicity
+
+Atomicity means a transaction is treated as a single unit: either all its operations succeed, or its changes are rolled back.
+
+**Example:** In a bank transfer, the money should not be deducted from one account without being credited to the other account.
+
+### C. Consistency
+
+Consistency means a transaction should move the database from one valid state to another while respecting its rules and constraints.
+
+**Example:** A transaction should not leave an account with an invalid balance if the database and application enforce a rule preventing negative balances.
+
+### I. Isolation
+
+Isolation controls how concurrent transactions interact with each other.
+
+**Example:** If two users update the same account simultaneously, the database's isolation mechanisms help prevent incorrect results caused by conflicting operations.
+
+The exact behavior depends on the transaction isolation level.
+
+### D. Durability
+
+Durability means that once a transaction has been successfully committed, its changes should survive a system failure according to the database's durability guarantees.
+
+**Example:** After a bank transfer is committed successfully, a normal server restart should not erase the committed transfer.
+
+### ACID Summary
+
+| Property | Meaning | Simple Example |
+|---|---|---|
+| Atomicity | All operations succeed or are rolled back | Both sides of a transfer are completed |
+| Consistency | Database rules remain satisfied | Enforced balance rules remain valid |
+| Isolation | Concurrent transactions are controlled | Simultaneous updates are handled safely |
+| Durability | Committed changes persist | Committed data survives a restart |
+
+---
+
+## 7. BEGIN
+
+### What is BEGIN?
+
+`BEGIN` starts a transaction in MySQL. `START TRANSACTION` is an equivalent, commonly used form.
+
+### Syntax
+
+```sql
+BEGIN;
+```
+
+You can also write:
+
+```sql
+START TRANSACTION;
+```
+
+### Example
+
+```sql
+START TRANSACTION;
+
+UPDATE Employees
+SET salary = salary + 2000
+WHERE employee_id = 1;
+
+COMMIT;
+```
+
+### Explanation
+
+The transaction starts before the update. The change is committed at the end, making it permanent.
+
+If you decide not to keep the change before committing, you can use `ROLLBACK` instead.
+
+**Important:** Transaction behavior depends on the storage engine. In MySQL, use a transactional storage engine such as InnoDB for transaction support. Some statements, including many DDL operations, cause implicit commits.
+
+---
+
+## 8. COMMIT
+
+### What is COMMIT?
+
+`COMMIT` permanently saves the changes made during the current transaction.
+
+After a successful commit, a normal `ROLLBACK` cannot undo those committed changes.
+
+### Syntax
+
+```sql
+COMMIT;
+```
+
+### Example
+
+```sql
+START TRANSACTION;
+
+UPDATE Employees
+SET salary = 50000
+WHERE employee_id = 1;
+
+COMMIT;
+```
+
+### Explanation
+
+1. The transaction starts.
+2. The employee's salary is updated.
+3. `COMMIT` saves the transaction's changes.
+
+Use `COMMIT` when you have completed the transaction successfully and want to keep its changes.
+
+---
+
+## 9. ROLLBACK
+
+### What is ROLLBACK?
+
+`ROLLBACK` cancels the uncommitted changes made during the current transaction.
+
+It is useful when an operation fails or you discover that the changes should not be saved.
+
+### Syntax
+
+```sql
+ROLLBACK;
+```
+
+### Example
+
+```sql
+START TRANSACTION;
+
+UPDATE Employees
+SET salary = 90000
+WHERE employee_id = 1;
+
+ROLLBACK;
+```
+
+### Explanation
+
+The salary update is undone, provided the change was part of the active transaction and had not already been committed.
+
+The employee's salary returns to its previous value.
+
+### COMMIT vs ROLLBACK
+
+| COMMIT | ROLLBACK |
+|---|---|
+| Saves the transaction's changes | Undoes uncommitted transaction changes |
+| Makes the changes permanent under normal transaction behavior | Cancels the pending changes |
+| Used when the operation succeeds | Used when the operation should be cancelled |
+
+**Important:** `ROLLBACK` cannot normally undo a transaction after it has been committed. It also cannot reverse changes that were already committed by an implicit commit.
+
+---
+
+## 10. SAVEPOINT
+
+### What is SAVEPOINT?
+
+A `SAVEPOINT` creates a named point inside a transaction. It allows you to roll back part of a transaction without cancelling all the changes made before that point.
+
+### Syntax
+
+```sql
+SAVEPOINT savepoint_name;
+```
+
+To roll back to a savepoint:
+
+```sql
+ROLLBACK TO SAVEPOINT savepoint_name;
+```
+
+To remove a savepoint:
+
+```sql
+RELEASE SAVEPOINT savepoint_name;
+```
+
+### Example
+
+```sql
+START TRANSACTION;
+
+UPDATE Employees
+SET salary = salary + 1000
+WHERE employee_id = 1;
+
+SAVEPOINT after_first_update;
+
+UPDATE Employees
+SET salary = salary + 2000
+WHERE employee_id = 2;
+
+ROLLBACK TO SAVEPOINT after_first_update;
+
+COMMIT;
+```
+
+### Explanation
+
+1. The transaction starts.
+2. The first employee's salary is increased by 1000.
+3. A savepoint is created.
+4. The second employee's salary is increased by 2000.
+5. The transaction rolls back to the savepoint, undoing the second update.
+6. `COMMIT` saves the remaining transaction changes, including the first update.
+
+### Important Points
+
+- `ROLLBACK TO SAVEPOINT` does not end the transaction.
+- Changes made before the savepoint remain pending.
+- Changes made after the savepoint are undone when rolling back to it.
+- `COMMIT` ends the transaction and removes its savepoints.
+
+---
+
+## 11. Role of Log Files: Redo, Undo, and Binary Log
+
+### What Are Database Log Files?
+
+Database log files record information about database changes and transactions. They help MySQL recover from failures, maintain transaction reliability, and support replication or point-in-time recovery.
+
+MySQL uses different logging mechanisms for different purposes. Redo logs, undo logs, and binary logs are not interchangeable.
+
+### A. Redo Log
+
+The **redo log** is primarily used by InnoDB to recover committed changes after a crash.
+
+It records information needed to reapply changes to database pages when necessary during crash recovery.
+
+**Example:** A transaction commits, but the server crashes before all modified data pages have been written to their normal data files. Redo information helps MySQL recover the committed changes.
+
+**Main purpose:** Crash recovery and durability.
+
+### B. Undo Log
+
+The **undo log** stores information that allows InnoDB to reverse changes and reconstruct earlier versions of data.
+
+It is important for:
+
+- Rolling back uncommitted changes.
+- Supporting consistent reads under multiversion concurrency control (MVCC).
+- Reconstructing earlier versions of rows when needed.
+
+**Example:** A transaction changes an employee's salary from 30000 to 50000, then executes `ROLLBACK`. Undo information allows InnoDB to restore the previous value.
+
+**Main purpose:** Rollback and earlier row versions.
+
+### C. Binary Log
+
+The **binary log**, often called the *binlog*, records database events that change data or structure, according to the configured logging rules.
+
+It is commonly used for:
+
+- Replication between MySQL servers.
+- Point-in-time recovery when combined with a suitable backup.
+- Tracking logged database changes.
+
+**Example:** After restoring a database backup, an administrator can replay relevant binary log events to recover changes made after that backup.
+
+**Main purpose:** Replication and recovery using logged events.
+
+### Comparison of Log Types
+
+| Log Type | Main Purpose | Common Use |
+|---|---|---|
+| Redo log | Reapply changes during InnoDB crash recovery | Recovering committed changes |
+| Undo log | Reverse changes and reconstruct earlier row versions | Rollback and consistent reads |
+| Binary log | Record logged database events | Replication and point-in-time recovery |
+
+### Important Notes
+
+- Redo and undo logs are important parts of InnoDB transaction processing.
+- The binary log serves a different purpose from the InnoDB redo log.
+- The binary log is not simply a copy of the redo log.
+- Recovery capabilities depend on configuration, storage, and the availability of suitable backups and log files.
+
+---
+
+## Quick Revision
+
+| Topic | Main Purpose |
+|---|---|
+| Views | Present data through a reusable virtual table |
+| CREATE VIEW | Create a view |
+| ALTER VIEW | Change a view's definition |
+| DROP VIEW | Remove a view definition |
+| Transaction | Group database operations into one unit of work |
+| ACID | Describe transaction reliability properties |
+| BEGIN | Start a transaction |
+| COMMIT | Save transaction changes |
+| ROLLBACK | Undo uncommitted changes |
+| SAVEPOINT | Create a point for partial rollback |
+| Redo log | Support crash recovery |
+| Undo log | Support rollback and earlier row versions |
+| Binary log | Support replication and point-in-time recovery |
+
+## Final Note
+
+Views make queries easier to reuse, while transactions help keep database changes reliable.
+
+Remember these important differences:
+
+- A **view** presents data from a query.
+- A **transaction** groups database operations into a logical unit.
+- `COMMIT` saves pending changes.
+- `ROLLBACK` cancels uncommitted changes.
+- `SAVEPOINT` allows partial rollback.
+- Redo logs support crash recovery, undo logs support rollback and earlier versions, and binary logs support replication and recovery workflows.
+
+These concepts are widely used in banking systems, shopping applications, employee management systems, and other real-world database applications.
