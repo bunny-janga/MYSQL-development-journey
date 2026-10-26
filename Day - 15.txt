@@ -1,0 +1,408 @@
+# Day 15: SQL Subqueries
+
+## 1. Single-Row Subqueries
+
+### What is a Single-Row Subquery?
+
+A **single-row subquery** is a query inside another SQL query that returns only one row. The outer query uses the result of the inner query to filter or retrieve data.
+
+Subqueries are also called nested queries because one query is written inside another.
+
+### Syntax
+
+```sql
+SELECT column_name
+FROM table_name
+WHERE column_name = (
+    SELECT column_name
+    FROM table_name
+    WHERE condition
+);
+```
+
+### Example
+
+Consider an `Employees` table:
+
+| employee_id | employee_name | salary |
+|---:|---|---:|
+| 1 | Ravi | 30000 |
+| 2 | Priya | 50000 |
+| 3 | Kumar | 40000 |
+| 4 | Anil | 50000 |
+
+Find employees who earn the same salary as Priya.
+
+```sql
+SELECT employee_name, salary
+FROM Employees
+WHERE salary = (
+    SELECT salary
+    FROM Employees
+    WHERE employee_name = 'Priya'
+);
+```
+
+### Output
+
+| employee_name | salary |
+|---|---:|
+| Priya | 50000 |
+| Anil | 50000 |
+
+### Explanation
+
+1. The inner query finds Priya's salary, which is `50000`.
+2. The outer query finds employees whose salary equals `50000`.
+3. Both Priya and Anil are returned.
+
+### Operators Used with Single-Row Subqueries
+
+Common operators include:
+
+- `=` — equal to
+- `>` — greater than
+- `<` — less than
+- `>=` — greater than or equal to
+- `<=` — less than or equal to
+- `<>` — not equal to
+
+### Example: Employees Earning More Than the Average Salary
+
+```sql
+SELECT employee_name, salary
+FROM Employees
+WHERE salary > (
+    SELECT AVG(salary)
+    FROM Employees
+);
+```
+
+The inner query calculates the average salary. The outer query displays employees earning more than that average.
+
+**Important:** A single-row subquery used with `=` or similar single-value operators must return no more than one row. If it returns multiple rows, MySQL can report an error.
+
+---
+
+## 2. Multi-Row Subqueries: ANY / SOME
+
+### What is a Multi-Row Subquery?
+
+A **multi-row subquery** returns multiple rows. When comparing a value with the results of such a query, SQL provides operators such as `ANY`, `SOME`, and `ALL`.
+
+`ANY` and `SOME` have the same meaning in MySQL.
+
+### What Does ANY Mean?
+
+`ANY` means that the comparison must be true for **at least one value** returned by the subquery.
+
+### Syntax
+
+```sql
+SELECT column_name
+FROM table_name
+WHERE column_name > ANY (
+    SELECT column_name
+    FROM table_name
+    WHERE condition
+);
+```
+
+### Example
+
+Find employees whose salary is greater than at least one employee's salary in department 10.
+
+```sql
+SELECT employee_name, salary
+FROM Employees
+WHERE salary > ANY (
+    SELECT salary
+    FROM Employees
+    WHERE department_id = 10
+);
+```
+
+Suppose the salaries in department 10 are `30000` and `40000`.
+
+An employee earning `35000` satisfies the condition because `35000` is greater than at least one salary: `30000`.
+
+An employee earning `45000` also satisfies it because their salary is greater than both values.
+
+### Common Comparisons
+
+| Condition | Meaning |
+|---|---|
+| `> ANY` | Greater than at least one returned value |
+| `< ANY` | Less than at least one returned value |
+| `= ANY` | Equal to at least one returned value |
+| `<> ANY` | Not equal to at least one returned value |
+
+### Example: Using SOME
+
+```sql
+SELECT employee_name, salary
+FROM Employees
+WHERE salary > SOME (
+    SELECT salary
+    FROM Employees
+    WHERE department_id = 10
+);
+```
+
+This works like the equivalent query using `ANY`.
+
+**Remember:** `ANY` and `SOME` are interchangeable in MySQL.
+
+---
+
+## 3. ALL Nested Subqueries
+
+### What Does ALL Mean?
+
+`ALL` means that the comparison must be true for **every value** returned by the subquery.
+
+It is useful when a condition must be satisfied against all values returned by another query.
+
+### Syntax
+
+```sql
+SELECT column_name
+FROM table_name
+WHERE column_name > ALL (
+    SELECT column_name
+    FROM table_name
+    WHERE condition
+);
+```
+
+### Example
+
+Find employees whose salary is greater than every salary in department 10.
+
+```sql
+SELECT employee_name, salary
+FROM Employees
+WHERE salary > ALL (
+    SELECT salary
+    FROM Employees
+    WHERE department_id = 10
+);
+```
+
+Suppose department 10 has salaries of `30000` and `40000`.
+
+An employee earning `45000` satisfies the condition because their salary is greater than both values.
+
+An employee earning `35000` does not satisfy it because their salary is not greater than `40000`.
+
+### Common Comparisons
+
+| Condition | Meaning |
+|---|---|
+| `> ALL` | Greater than every returned value |
+| `< ALL` | Less than every returned value |
+| `= ALL` | Equal to every returned value |
+| `<> ALL` | Not equal to every returned value |
+
+### Difference Between ANY and ALL
+
+| ANY / SOME | ALL |
+|---|---|
+| At least one comparison must be true | Every comparison must be true |
+| `> ANY` can mean greater than the minimum value | `> ALL` means greater than the maximum value |
+| More flexible condition | Stricter condition |
+
+**Important:** These comparisons assume the subquery returns ordinary non-`NULL` values. `NULL` values can affect comparison results. An empty subquery also has special behavior: `ANY` is false, while `ALL` is true.
+
+---
+
+## 4. Correlated Subqueries
+
+### What is a Correlated Subquery?
+
+A **correlated subquery** is a subquery that refers to a column from the outer query.
+
+Unlike a simple independent subquery, it depends on the current row being examined by the outer query.
+
+### Example Table: Employees
+
+| employee_id | employee_name | department_id | salary |
+|---:|---|---:|---:|
+| 1 | Ravi | 10 | 30000 |
+| 2 | Priya | 10 | 40000 |
+| 3 | Kumar | 20 | 35000 |
+| 4 | Anil | 20 | 45000 |
+
+### Example: Employees Earning More Than Their Department's Average
+
+```sql
+SELECT employee_name, department_id, salary
+FROM Employees AS e
+WHERE salary > (
+    SELECT AVG(salary)
+    FROM Employees
+    WHERE department_id = e.department_id
+);
+```
+
+### Output
+
+| employee_name | department_id | salary |
+|---|---:|---:|
+| Priya | 10 | 40000 |
+| Anil | 20 | 45000 |
+
+### Explanation
+
+1. The outer query examines an employee.
+2. The inner query calculates the average salary for that employee's department.
+3. The outer query checks whether the employee earns more than that average.
+4. Only employees earning above their department's average are returned.
+
+For department 10, the average salary is `35000`. Priya earns `40000`.
+
+For department 20, the average salary is `40000`. Anil earns `45000`.
+
+### Important Points
+
+- A correlated subquery references the outer query using a table alias, such as `e.department_id`.
+- It depends on the current row of the outer query.
+- It can be useful for department-wise comparisons, finding the latest record per group, and checking related data.
+- Correlated subqueries may be more expensive for large datasets, so indexes and alternative query designs can matter.
+
+---
+
+## 5. EXISTS and NOT EXISTS
+
+### What is EXISTS?
+
+`EXISTS` checks whether a subquery returns at least one row.
+
+It returns true if a matching row exists and false if no matching row exists.
+
+### Syntax
+
+```sql
+SELECT column_name
+FROM table_name AS a
+WHERE EXISTS (
+    SELECT 1
+    FROM another_table AS b
+    WHERE b.column_name = a.column_name
+);
+```
+
+### Example Tables
+
+**Departments**
+
+| department_id | department_name |
+|---:|---|
+| 10 | Computer Science |
+| 20 | Commerce |
+| 30 | Mechanical |
+
+**Employees**
+
+| employee_id | employee_name | department_id |
+|---:|---|---:|
+| 1 | Ravi | 10 |
+| 2 | Priya | 20 |
+| 3 | Kumar | 10 |
+
+### Example: Departments That Have Employees
+
+```sql
+SELECT department_id, department_name
+FROM Departments AS d
+WHERE EXISTS (
+    SELECT 1
+    FROM Employees AS e
+    WHERE e.department_id = d.department_id
+);
+```
+
+### Output
+
+| department_id | department_name |
+|---:|---|
+| 10 | Computer Science |
+| 20 | Commerce |
+
+### Explanation
+
+- Computer Science has employees, so it is returned.
+- Commerce has an employee, so it is returned.
+- Mechanical has no employees, so it is not returned.
+
+`SELECT 1` is commonly used because `EXISTS` checks whether a row exists; it does not need the actual column values from that row.
+
+### What is NOT EXISTS?
+
+`NOT EXISTS` returns true when the subquery returns no matching rows.
+
+### Example: Departments Without Employees
+
+```sql
+SELECT department_id, department_name
+FROM Departments AS d
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM Employees AS e
+    WHERE e.department_id = d.department_id
+);
+```
+
+### Output
+
+| department_id | department_name |
+|---:|---|
+| 30 | Mechanical |
+
+### Explanation
+
+The query checks each department. If no employee belongs to that department, the department is returned.
+
+### EXISTS vs NOT EXISTS
+
+| EXISTS | NOT EXISTS |
+|---|---|
+| Checks whether a matching row exists | Checks whether a matching row does not exist |
+| Returns rows with matches | Returns rows without matches |
+| Useful for finding departments with employees | Useful for finding departments without employees |
+
+### Common Uses
+
+- Finding customers who have placed orders.
+- Finding customers who have never placed orders.
+- Finding departments that have employees.
+- Finding departments without employees.
+- Checking whether related records exist.
+
+---
+
+## Quick Revision
+
+| Concept | Purpose |
+|---|---|
+| Single-row subquery | Uses a subquery that returns at most one row |
+| ANY | Comparison is true for at least one returned value |
+| SOME | Same meaning as ANY in MySQL |
+| ALL | Comparison must be true for every returned value |
+| Correlated subquery | Refers to a column from the outer query |
+| EXISTS | Checks whether at least one row exists |
+| NOT EXISTS | Checks whether no matching row exists |
+
+## Final Note
+
+Subqueries help you solve SQL problems by using the result of one query inside another.
+
+Remember these simple rules:
+
+- Use a single-row subquery when you need one value, such as an average salary.
+- Use `ANY` when a comparison needs to match at least one value.
+- Use `ALL` when a comparison must hold for every value.
+- Use a correlated subquery when the inner query depends on the current outer row.
+- Use `EXISTS` and `NOT EXISTS` to check whether related records are present or absent.
+
+These concepts are useful for writing database queries in employee management, student management, customer orders, and many other applications.
