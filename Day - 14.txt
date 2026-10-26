@@ -1,0 +1,430 @@
+# Day 14: Advanced SQL Joins
+
+## 1. LEFT OUTER JOIN
+
+### What is LEFT OUTER JOIN?
+
+A `LEFT OUTER JOIN` returns all rows from the left table and the matching rows from the right table.
+
+If a row in the left table has no match in the right table, the result still includes that row. The columns from the right table will contain `NULL`.
+
+`LEFT JOIN` and `LEFT OUTER JOIN` mean the same thing in MySQL.
+
+### Example Tables
+
+**Students**
+
+| student_id | student_name | dept_id |
+|---:|---|---:|
+| 1 | Ravi | 10 |
+| 2 | Priya | 20 |
+| 3 | Kumar | 30 |
+
+**Departments**
+
+| dept_id | dept_name |
+|---:|---|
+| 10 | Computer Science |
+| 20 | Commerce |
+| 40 | Mechanical |
+
+### Syntax
+
+```sql
+SELECT columns
+FROM table1
+LEFT JOIN table2
+ON table1.column_name = table2.column_name;
+```
+
+### Example
+
+```sql
+SELECT
+    s.student_name,
+    d.dept_name
+FROM Students AS s
+LEFT OUTER JOIN Departments AS d
+ON s.dept_id = d.dept_id;
+```
+
+### Output
+
+| student_name | dept_name |
+|---|---|
+| Ravi | Computer Science |
+| Priya | Commerce |
+| Kumar | NULL |
+
+### Explanation
+
+- Ravi matches department ID 10.
+- Priya matches department ID 20.
+- Kumar has department ID 30, which does not exist in the `Departments` table.
+- Kumar still appears because `LEFT JOIN` keeps every row from the left table.
+
+### When to Use LEFT JOIN
+
+- Displaying all students, even those without a department.
+- Listing all customers, including those who have never placed an order.
+- Finding records that do not have a matching record in another table.
+
+---
+
+## 2. RIGHT OUTER JOIN
+
+### What is RIGHT OUTER JOIN?
+
+A `RIGHT OUTER JOIN` returns all rows from the right table and the matching rows from the left table.
+
+If a row in the right table has no match in the left table, the result still includes that row. The columns from the left table will contain `NULL`.
+
+`RIGHT JOIN` and `RIGHT OUTER JOIN` mean the same thing in MySQL.
+
+### Syntax
+
+```sql
+SELECT columns
+FROM table1
+RIGHT JOIN table2
+ON table1.column_name = table2.column_name;
+```
+
+### Example
+
+Using the same `Students` and `Departments` tables:
+
+```sql
+SELECT
+    s.student_name,
+    d.dept_name
+FROM Students AS s
+RIGHT OUTER JOIN Departments AS d
+ON s.dept_id = d.dept_id;
+```
+
+### Output
+
+| student_name | dept_name |
+|---|---|
+| Ravi | Computer Science |
+| Priya | Commerce |
+| NULL | Mechanical |
+
+### Explanation
+
+- Computer Science matches Ravi.
+- Commerce matches Priya.
+- Mechanical has no matching student, but it still appears because `RIGHT JOIN` keeps every row from the right table.
+
+### When to Use RIGHT JOIN
+
+Use it when you need every record from the right-hand table, whether or not a matching record exists in the left-hand table.
+
+**Tip:** Many developers prefer `LEFT JOIN` because the same result can often be written by reversing the order of the tables.
+
+---
+
+## 3. FULL OUTER JOIN (Simulation Using UNION)
+
+### What is FULL OUTER JOIN?
+
+A `FULL OUTER JOIN` returns:
+
+- All matching rows from both tables.
+- Unmatched rows from the left table.
+- Unmatched rows from the right table.
+
+When a row has no match, the columns from the missing side contain `NULL`.
+
+**Important:** MySQL does not directly support `FULL OUTER JOIN`. We can simulate it using `LEFT JOIN`, `RIGHT JOIN`, and `UNION`.
+
+### Syntax
+
+```sql
+SELECT columns
+FROM table1
+LEFT JOIN table2
+ON table1.column_name = table2.column_name
+
+UNION
+
+SELECT columns
+FROM table1
+RIGHT JOIN table2
+ON table1.column_name = table2.column_name;
+```
+
+### Example
+
+```sql
+SELECT
+    s.student_name,
+    d.dept_name
+FROM Students AS s
+LEFT JOIN Departments AS d
+ON s.dept_id = d.dept_id
+
+UNION
+
+SELECT
+    s.student_name,
+    d.dept_name
+FROM Students AS s
+RIGHT JOIN Departments AS d
+ON s.dept_id = d.dept_id;
+```
+
+### Output
+
+| student_name | dept_name |
+|---|---|
+| Ravi | Computer Science |
+| Priya | Commerce |
+| Kumar | NULL |
+| NULL | Mechanical |
+
+### Explanation
+
+- The `LEFT JOIN` includes all students.
+- The `RIGHT JOIN` includes all departments.
+- `UNION` combines the results and removes duplicate rows.
+
+### Important Point
+
+Both `SELECT` statements must return the same number of columns in compatible data types and in the same order.
+
+`UNION` removes duplicate result rows. If you need to preserve duplicates in a more specialized query, use an appropriate alternative rather than assuming `UNION ALL` always produces a correct full-join simulation.
+
+---
+
+## 4. CROSS JOIN
+
+### What is CROSS JOIN?
+
+A `CROSS JOIN` returns every possible combination of rows from two tables. This is called a **Cartesian product**.
+
+For example, if the first table contains 3 rows and the second table contains 2 rows, the result contains:
+
+3 × 2 = 6 rows.
+
+### Example Tables
+
+**Colors**
+
+| color_name |
+|---|
+| Red |
+| Blue |
+
+**Sizes**
+
+| size_name |
+|---|
+| Small |
+| Large |
+| Medium |
+
+### Syntax
+
+```sql
+SELECT columns
+FROM table1
+CROSS JOIN table2;
+```
+
+### Example
+
+```sql
+SELECT
+    c.color_name,
+    s.size_name
+FROM Colors AS c
+CROSS JOIN Sizes AS s;
+```
+
+### Output
+
+| color_name | size_name |
+|---|---|
+| Red | Small |
+| Red | Large |
+| Red | Medium |
+| Blue | Small |
+| Blue | Large |
+| Blue | Medium |
+
+### Explanation
+
+Each color is combined with every size.
+
+There are 2 colors and 3 sizes, so the result contains 6 rows.
+
+### When to Use CROSS JOIN
+
+- Generating all product color and size combinations.
+- Creating combinations for reports.
+- Building test data.
+- Generating all possible combinations of options.
+
+### Important Warning
+
+A `CROSS JOIN` can produce a very large result when the tables contain many rows. Use it carefully.
+
+---
+
+## 5. JOIN with WHERE Filters and Anti-Join Patterns
+
+### A. JOIN with WHERE Filters
+
+A join combines related records from tables. A `WHERE` clause filters the resulting rows based on a condition.
+
+### Example
+
+Display students who belong to the Computer Science department.
+
+```sql
+SELECT
+    s.student_name,
+    d.dept_name
+FROM Students AS s
+INNER JOIN Departments AS d
+ON s.dept_id = d.dept_id
+WHERE d.dept_name = 'Computer Science';
+```
+
+### Output
+
+| student_name | dept_name |
+|---|---|
+| Ravi | Computer Science |
+
+### Explanation
+
+1. `INNER JOIN` matches students with their departments.
+2. `WHERE` keeps only rows where the department name is `Computer Science`.
+
+You can also filter using numeric values:
+
+```sql
+SELECT
+    s.student_name,
+    d.dept_name
+FROM Students AS s
+INNER JOIN Departments AS d
+ON s.dept_id = d.dept_id
+WHERE s.dept_id = 10;
+```
+
+### Important Difference: ON vs WHERE
+
+- `ON` specifies how rows from two tables are matched.
+- `WHERE` filters the rows returned by the query.
+
+Be careful when filtering a `LEFT JOIN`. A condition on the right-hand table in the `WHERE` clause can remove unmatched rows and change the result. If you need to preserve all left-table rows, you may need to place the right-table condition in the `ON` clause instead.
+
+Example:
+
+```sql
+SELECT
+    s.student_name,
+    d.dept_name
+FROM Students AS s
+LEFT JOIN Departments AS d
+ON s.dept_id = d.dept_id
+AND d.dept_name = 'Computer Science';
+```
+
+This keeps all students, but only matches a department when its name is `Computer Science`.
+
+---
+
+### B. What Is an Anti-Join?
+
+An **anti-join** identifies rows in one table that have no matching row in another table.
+
+For example, you may want to find:
+
+- Students who do not belong to any existing department.
+- Customers who have never placed an order.
+- Products that have never been sold.
+
+In MySQL, a common anti-join pattern uses `LEFT JOIN` with `IS NULL`.
+
+### Example: Find Students Without a Matching Department
+
+```sql
+SELECT
+    s.student_id,
+    s.student_name
+FROM Students AS s
+LEFT JOIN Departments AS d
+ON s.dept_id = d.dept_id
+WHERE d.dept_id IS NULL;
+```
+
+### Output
+
+| student_id | student_name |
+|---:|---|
+| 3 | Kumar |
+
+### Explanation
+
+- `LEFT JOIN` keeps every student.
+- Students with matching departments receive department values.
+- Students without a matching department receive `NULL` for the department columns.
+- `WHERE d.dept_id IS NULL` returns only students without a match.
+
+### Alternative: Using NOT EXISTS
+
+The same requirement can be expressed using `NOT EXISTS`.
+
+```sql
+SELECT
+    s.student_id,
+    s.student_name
+FROM Students AS s
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM Departments AS d
+    WHERE d.dept_id = s.dept_id
+);
+```
+
+`NOT EXISTS` returns students for whom no matching department row exists.
+
+### Why Use NOT EXISTS?
+
+- It clearly expresses the requirement that no matching record should exist.
+- It is useful for more complex matching conditions.
+- It avoids relying on a particular right-table column being `NULL` in the final result.
+
+---
+
+## Quick Revision
+
+| Concept | Main Purpose |
+|---|---|
+| LEFT OUTER JOIN | Returns all left-table rows and matching right-table rows |
+| RIGHT OUTER JOIN | Returns all right-table rows and matching left-table rows |
+| FULL OUTER JOIN simulation | Includes matched and unmatched rows from both tables |
+| CROSS JOIN | Returns every possible combination of rows |
+| JOIN with WHERE | Combines tables and filters the result |
+| Anti-join | Finds rows without a matching record |
+| LEFT JOIN + IS NULL | Common anti-join pattern |
+| NOT EXISTS | Finds rows for which no matching record exists |
+
+## Final Note
+
+Joins are important when working with real-world databases because information is usually stored in separate, related tables.
+
+Remember these simple rules:
+
+- Use `LEFT JOIN` when every row from the left table must appear.
+- Use `RIGHT JOIN` when every row from the right table must appear.
+- Simulate a full outer join using `LEFT JOIN`, `RIGHT JOIN`, and `UNION` in MySQL.
+- Use `CROSS JOIN` when you need all combinations.
+- Use `NOT EXISTS` or `LEFT JOIN ... IS NULL` to find records without matches.
+
+Understanding these patterns will help you write better SQL queries for student management, employee management, customer orders, and other database applications.
