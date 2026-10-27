@@ -1,0 +1,350 @@
+# Day 17: MySQL Stored Procedures
+
+## 1. Introduction to Stored Procedures
+
+A **stored procedure** is a group of SQL statements saved inside the database under a specific name. Instead of writing the same SQL statements every time, we can create a procedure once and execute it whenever required.
+
+Stored procedures are useful when we want to perform repeated database operations, organize SQL code, and pass values into or out of database operations.
+
+### Advantages of Stored Procedures
+
+- **Code reusability:** Write the SQL logic once and use it multiple times.
+- **Easy maintenance:** Keep related SQL statements together.
+- **Better organization:** Separate database operations into named procedures.
+- **Parameter support:** Pass input values and return results using parameters.
+- **Access control:** Permissions can be granted to execute a procedure without directly granting access to every underlying table, depending on the procedure's security configuration.
+
+### Example
+
+Suppose we frequently need to display all employees from an `employees` table. Instead of writing the same `SELECT` statement every time, we can create a stored procedure for it.
+
+```sql
+DELIMITER //
+
+CREATE PROCEDURE GetEmployees()
+BEGIN
+    SELECT * FROM employees;
+END //
+
+DELIMITER ;
+```
+
+To execute the procedure:
+
+```sql
+CALL GetEmployees();
+```
+
+**Explanation:**
+
+- `CREATE PROCEDURE` creates a stored procedure.
+- `GetEmployees()` is the procedure name.
+- `BEGIN` and `END` contain the SQL statements.
+- `DELIMITER //` temporarily changes the statement delimiter so MySQL can recognize the end of the procedure definition.
+- `DELIMITER ;` restores the normal delimiter.
+- `CALL` executes the procedure.
+
+The example assumes that an `employees` table already exists.
+
+---
+
+## 2. CREATE PROCEDURE Syntax with IN Parameter
+
+An **IN parameter** is used to pass a value into a stored procedure. The procedure can use that value while executing its SQL statements.
+
+IN is the default parameter mode in MySQL, but writing it explicitly makes the purpose clear.
+
+### Syntax
+
+```sql
+DELIMITER //
+
+CREATE PROCEDURE procedure_name(IN parameter_name datatype)
+BEGIN
+    -- SQL statements
+END //
+
+DELIMITER ;
+```
+
+### Example
+
+Create a procedure that displays the details of an employee using their ID.
+
+```sql
+DELIMITER //
+
+CREATE PROCEDURE GetEmployeeById(IN emp_id INT)
+BEGIN
+    SELECT *
+    FROM employees
+    WHERE employee_id = emp_id;
+END //
+
+DELIMITER ;
+```
+
+### Calling the Procedure
+
+```sql
+CALL GetEmployeeById(101);
+```
+
+**Explanation:**
+
+- `IN emp_id INT` accepts an integer value from the caller.
+- `CALL GetEmployeeById(101)` passes `101` to the procedure.
+- The `SELECT` statement displays the employee whose `employee_id` matches the supplied value.
+
+**Remember:** An IN parameter passes information into a procedure. It is not used to return a value to the caller.
+
+---
+
+## 3. OUT Parameter
+
+An **OUT parameter** is used to send a value from a stored procedure back to the caller.
+
+It is useful when we want a procedure to calculate or retrieve a single value, such as an employee's salary, the number of records, or a total amount.
+
+### Syntax
+
+```sql
+DELIMITER //
+
+CREATE PROCEDURE procedure_name(OUT parameter_name datatype)
+BEGIN
+    -- Assign a value to the OUT parameter
+END //
+
+DELIMITER ;
+```
+
+### Example
+
+Create a procedure that returns the total number of employees.
+
+```sql
+DELIMITER //
+
+CREATE PROCEDURE GetEmployeeCount(OUT total INT)
+BEGIN
+    SELECT COUNT(*)
+    INTO total
+    FROM employees;
+END //
+
+DELIMITER ;
+```
+
+### Calling the Procedure
+
+```sql
+CALL GetEmployeeCount(@employee_total);
+
+SELECT @employee_total;
+```
+
+**Explanation:**
+
+- `OUT total INT` defines a parameter for returning a value.
+- `COUNT(*)` counts the rows in the `employees` table.
+- `INTO total` stores the count in the OUT parameter.
+- `@employee_total` is a MySQL user-defined session variable that receives the returned value.
+- `SELECT @employee_total` displays the result.
+
+For example, if the table contains 25 employees, the result will be:
+
+```text
+@employee_total
+25
+```
+
+**Remember:** An OUT parameter sends a value from the procedure to the caller.
+
+---
+
+## 4. INOUT Parameter
+
+An **INOUT parameter** is used both to receive a value from the caller and to return an updated value.
+
+The procedure receives the initial value, performs an operation on it, and sends the modified value back.
+
+### Syntax
+
+```sql
+DELIMITER //
+
+CREATE PROCEDURE procedure_name(INOUT parameter_name datatype)
+BEGIN
+    -- Use and update the parameter
+END //
+
+DELIMITER ;
+```
+
+### Example
+
+Create a procedure that doubles a number.
+
+```sql
+DELIMITER //
+
+CREATE PROCEDURE DoubleNumber(INOUT num INT)
+BEGIN
+    SET num = num * 2;
+END //
+
+DELIMITER ;
+```
+
+### Calling the Procedure
+
+```sql
+SET @value = 10;
+
+CALL DoubleNumber(@value);
+
+SELECT @value;
+```
+
+**Output:**
+
+```text
+@value
+20
+```
+
+**Explanation:**
+
+1. `SET @value = 10` assigns the initial value.
+2. `CALL DoubleNumber(@value)` passes the variable to the procedure.
+3. `SET num = num * 2` doubles the value.
+4. The updated value is returned to `@value`.
+5. `SELECT @value` displays `20`.
+
+**Remember:** INOUT takes a value in and sends the modified value back out.
+
+---
+
+## 5. Calling Procedures Using CALL
+
+The `CALL` statement is used to execute a stored procedure.
+
+After creating a procedure, we can call it whenever we need its functionality.
+
+### Syntax
+
+```sql
+CALL procedure_name();
+```
+
+If the procedure accepts parameters, pass the required arguments inside the parentheses.
+
+### Example 1: Procedure Without Parameters
+
+```sql
+CALL GetEmployees();
+```
+
+This executes the procedure that displays all employees.
+
+### Example 2: Procedure with an IN Parameter
+
+```sql
+CALL GetEmployeeById(101);
+```
+
+This passes employee ID `101` to the procedure.
+
+### Example 3: Procedure with an OUT Parameter
+
+```sql
+CALL GetEmployeeCount(@employee_total);
+
+SELECT @employee_total;
+```
+
+This executes the procedure and displays the returned employee count.
+
+### Example 4: Procedure with an INOUT Parameter
+
+```sql
+SET @value = 10;
+
+CALL DoubleNumber(@value);
+
+SELECT @value;
+```
+
+This passes the initial value `10`, doubles it, and displays the updated value `20`.
+
+### Important Points
+
+- Use `CALL` to execute a stored procedure.
+- Pass the required arguments in the correct order.
+- Use a MySQL session variable such as `@employee_total` to receive an OUT value.
+- INOUT parameters need a value that can be updated and read after the procedure executes.
+
+---
+
+## 6. DROP PROCEDURE
+
+The `DROP PROCEDURE` statement permanently removes a stored procedure from the database.
+
+After dropping it, you cannot call that procedure unless you create it again.
+
+### Syntax
+
+```sql
+DROP PROCEDURE procedure_name;
+```
+
+### Example
+
+```sql
+DROP PROCEDURE GetEmployees;
+```
+
+This removes the `GetEmployees` procedure.
+
+### Using IF EXISTS
+
+To avoid an error when the procedure does not exist, use `IF EXISTS`.
+
+```sql
+DROP PROCEDURE IF EXISTS GetEmployees;
+```
+
+This removes the procedure if it exists. If it does not exist, MySQL issues a warning instead of an error.
+
+### Important Points
+
+- `DROP PROCEDURE` removes the procedure definition.
+- It does not automatically delete the tables or records used by the procedure.
+- Use `IF EXISTS` when you want to safely remove a procedure that may not exist.
+- Be careful before dropping a procedure because other applications may depend on it.
+
+---
+
+## Difference Between IN, OUT, and INOUT
+
+| Parameter | Purpose | Example |
+|---|---|---|
+| `IN` | Passes a value into the procedure | Search using an employee ID |
+| `OUT` | Returns a value from the procedure | Return the employee count |
+| `INOUT` | Receives a value and returns its updated value | Double a number |
+
+## Day 17 Summary
+
+Today, we learned about MySQL stored procedures and how to create, execute, and remove them.
+
+- **Stored Procedure:** A named group of SQL statements stored in the database.
+- **CREATE PROCEDURE:** Creates a stored procedure.
+- **IN:** Receives input from the caller.
+- **OUT:** Returns a value to the caller.
+- **INOUT:** Receives and returns an updated value.
+- **CALL:** Executes a stored procedure.
+- **DROP PROCEDURE:** Removes a stored procedure.
+- **DELIMITER:** Temporarily changes the statement delimiter while defining a procedure containing multiple SQL statements.
+
+Stored procedures help organize reusable SQL logic and are especially useful when the same database operation needs to be performed repeatedly.
