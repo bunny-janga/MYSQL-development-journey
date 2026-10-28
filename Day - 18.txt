@@ -1,0 +1,437 @@
+# Day 18: MySQL Triggers
+
+## 1. Introduction to Triggers — BEFORE and AFTER INSERT
+
+A **trigger** is a database object that automatically executes a set of SQL statements when a specific event occurs on a table.
+
+For example, when a new employee is added to a table, a trigger can automatically record the insertion in an audit table or validate the data before it is saved.
+
+Triggers are useful when we want certain actions to happen automatically without manually calling a separate procedure.
+
+### Types of Triggers
+
+MySQL supports triggers for three main events:
+
+- **INSERT:** When a new row is inserted.
+- **UPDATE:** When an existing row is modified.
+- **DELETE:** When a row is deleted.
+
+Each of these events can have a `BEFORE` or `AFTER` trigger.
+
+- **BEFORE trigger:** Executes before the triggering operation is performed.
+- **AFTER trigger:** Executes after the triggering operation has completed successfully.
+
+### Basic Syntax
+
+```sql
+CREATE TRIGGER trigger_name
+BEFORE INSERT ON table_name
+FOR EACH ROW
+BEGIN
+    -- SQL statements
+END;
+```
+
+The trigger timing can be `BEFORE` or `AFTER`, and the event can be `INSERT`, `UPDATE`, or `DELETE`.
+
+### Important Keywords
+
+- `CREATE TRIGGER` creates a trigger.
+- `BEFORE` or `AFTER` specifies when the trigger executes.
+- `ON table_name` specifies the table associated with the trigger.
+- `FOR EACH ROW` means the trigger executes separately for each affected row.
+- `NEW` refers to the new row values in an INSERT trigger.
+- `OLD` refers to the existing row values in an UPDATE or DELETE trigger.
+
+**Note:** In MySQL, `NEW` and `OLD` are used to access row values. For example, `NEW.salary` refers to the new salary value.
+
+---
+
+## 2. INSERT Triggers
+
+An INSERT trigger runs when a new record is inserted into a table.
+
+MySQL supports both `BEFORE INSERT` and `AFTER INSERT` triggers.
+
+### Example: BEFORE INSERT Trigger
+
+Suppose we have an `employees` table and want to prevent a negative salary from being inserted.
+
+```sql
+DELIMITER //
+
+CREATE TRIGGER CheckEmployeeSalary
+BEFORE INSERT ON employees
+FOR EACH ROW
+BEGIN
+    IF NEW.salary < 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Salary cannot be negative';
+    END IF;
+END //
+
+DELIMITER ;
+```
+
+### Explanation
+
+- `BEFORE INSERT` runs before a new employee record is inserted.
+- `NEW.salary` accesses the salary value being inserted.
+- `IF NEW.salary < 0` checks whether the salary is negative.
+- `SIGNAL SQLSTATE '45000'` raises an application error and prevents the invalid insertion.
+
+For example:
+
+```sql
+INSERT INTO employees (employee_id, name, salary)
+VALUES (101, 'Ravi', -5000);
+```
+
+This insertion fails because the salary is negative.
+
+### Example: AFTER INSERT Trigger
+
+Suppose we want to record every new employee in an audit table.
+
+First, create an audit table:
+
+```sql
+CREATE TABLE employee_audit (
+    audit_id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT,
+    action_type VARCHAR(20),
+    action_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+Now create the trigger:
+
+```sql
+DELIMITER //
+
+CREATE TRIGGER AfterEmployeeInsert
+AFTER INSERT ON employees
+FOR EACH ROW
+BEGIN
+    INSERT INTO employee_audit
+        (employee_id, action_type)
+    VALUES
+        (NEW.employee_id, 'INSERT');
+END //
+
+DELIMITER ;
+```
+
+Whenever a new employee is inserted successfully, the trigger automatically adds an entry to `employee_audit`.
+
+**Remember:** Use `BEFORE INSERT` when checking or preparing new values. Use `AFTER INSERT` when performing follow-up actions after a successful insertion.
+
+---
+
+## 3. UPDATE Triggers
+
+An UPDATE trigger runs when an existing record is modified.
+
+MySQL supports `BEFORE UPDATE` and `AFTER UPDATE` triggers.
+
+### BEFORE UPDATE Example
+
+Suppose an employee's salary must never be negative, including when it is updated.
+
+```sql
+DELIMITER //
+
+CREATE TRIGGER CheckSalaryUpdate
+BEFORE UPDATE ON employees
+FOR EACH ROW
+BEGIN
+    IF NEW.salary < 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Salary cannot be negative';
+    END IF;
+END //
+
+DELIMITER ;
+```
+
+### Explanation
+
+- `BEFORE UPDATE` executes before an existing row is updated.
+- `OLD.salary` represents the salary before the update.
+- `NEW.salary` represents the salary being assigned.
+- The trigger rejects an update if the new salary is negative.
+
+### AFTER UPDATE Example
+
+Suppose we want to record salary changes in a separate audit table.
+
+Create the audit table:
+
+```sql
+CREATE TABLE salary_audit (
+    audit_id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT,
+    old_salary DECIMAL(10, 2),
+    new_salary DECIMAL(10, 2),
+    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+Create the trigger:
+
+```sql
+DELIMITER //
+
+CREATE TRIGGER AfterSalaryUpdate
+AFTER UPDATE ON employees
+FOR EACH ROW
+BEGIN
+    IF OLD.salary <> NEW.salary THEN
+        INSERT INTO salary_audit
+            (employee_id, old_salary, new_salary)
+        VALUES
+            (NEW.employee_id, OLD.salary, NEW.salary);
+    END IF;
+END //
+
+DELIMITER ;
+```
+
+### Example Update
+
+```sql
+UPDATE employees
+SET salary = 30000
+WHERE employee_id = 101;
+```
+
+If the employee's salary changes, the trigger records the previous and new salary values in `salary_audit`.
+
+**Remember:** In UPDATE triggers, `OLD` contains the original values and `NEW` contains the updated values.
+
+---
+
+## 4. DELETE Triggers
+
+A DELETE trigger runs when a record is deleted from a table.
+
+MySQL supports `BEFORE DELETE` and `AFTER DELETE` triggers.
+
+In a DELETE trigger, `OLD` is used to access the row being deleted. There is no `NEW` row because the record is being removed.
+
+### BEFORE DELETE Example
+
+Suppose we want to prevent the deletion of an employee with ID `1`.
+
+```sql
+DELIMITER //
+
+CREATE TRIGGER PreventEmployeeDelete
+BEFORE DELETE ON employees
+FOR EACH ROW
+BEGIN
+    IF OLD.employee_id = 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'This employee cannot be deleted';
+    END IF;
+END //
+
+DELIMITER ;
+```
+
+If someone tries to delete employee `1`, MySQL raises an error and the deletion is rejected.
+
+### AFTER DELETE Example
+
+Suppose we want to keep a record of every deleted employee.
+
+Create a table to store deleted employee details:
+
+```sql
+CREATE TABLE deleted_employees (
+    employee_id INT,
+    employee_name VARCHAR(100),
+    deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+Create the trigger:
+
+```sql
+DELIMITER //
+
+CREATE TRIGGER AfterEmployeeDelete
+AFTER DELETE ON employees
+FOR EACH ROW
+BEGIN
+    INSERT INTO deleted_employees
+        (employee_id, employee_name)
+    VALUES
+        (OLD.employee_id, OLD.name);
+END //
+
+DELIMITER ;
+```
+
+### Example Delete
+
+```sql
+DELETE FROM employees
+WHERE employee_id = 101;
+```
+
+After the employee is deleted successfully, the trigger saves the employee's ID and name in `deleted_employees`.
+
+**Remember:** Use `OLD` in DELETE triggers to access the values of the deleted record.
+
+---
+
+## 5. Practical Use Cases — Auditing and Validation
+
+Triggers are especially useful when a database needs to maintain certain rules automatically.
+
+### A. Auditing
+
+**Auditing** means keeping a record of important database changes, such as when records are inserted, updated, or deleted.
+
+For example, an organization may need to know:
+
+- Which employee record was added.
+- When a salary was changed.
+- What the old and new values were.
+- Which records were deleted.
+
+An audit table can store this information for future reference.
+
+Example:
+
+```sql
+INSERT INTO employee_audit
+    (employee_id, action_type)
+VALUES
+    (101, 'INSERT');
+```
+
+This is an ordinary SQL statement that a trigger can execute automatically when an employee is inserted.
+
+**Important:** A trigger does not automatically identify the actual person who performed a change. If you need that information, you must design a reliable way to capture the database user or application user.
+
+### B. Validation
+
+**Validation** means checking data before allowing it to be stored or changed.
+
+For example, we may want to ensure that:
+
+- Salary is not negative.
+- A product price is not negative.
+- A quantity is greater than zero.
+- Certain records cannot be deleted.
+
+Example of a price validation trigger:
+
+```sql
+DELIMITER //
+
+CREATE TRIGGER ValidateProductPrice
+BEFORE INSERT ON products
+FOR EACH ROW
+BEGIN
+    IF NEW.price < 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Product price cannot be negative';
+    END IF;
+END //
+
+DELIMITER ;
+```
+
+This trigger rejects a new product record if its price is negative.
+
+### C. Automatic Record Keeping
+
+Triggers can automatically record changes without requiring the application to execute a separate audit statement each time.
+
+### D. Enforcing Business Rules
+
+Triggers can help enforce rules that depend on the data being inserted, updated, or deleted.
+
+However, use built-in database constraints such as `NOT NULL`, `UNIQUE`, `CHECK`, and foreign keys whenever they are sufficient. These constraints are often simpler for enforcing basic data rules.
+
+### Important Points About Triggers
+
+- Triggers execute automatically when their defined event occurs.
+- A trigger is associated with a particular table and event.
+- `BEFORE` triggers run before the row operation.
+- `AFTER` triggers run after the row operation succeeds.
+- Trigger errors can cause the triggering statement to fail.
+- Triggers should be kept simple and carefully tested because they can affect database operations without being explicitly called by the application.
+
+---
+
+## 6. DROP TRIGGER
+
+The `DROP TRIGGER` statement removes an existing trigger from the database.
+
+After a trigger is dropped, it will no longer execute automatically.
+
+### Syntax
+
+```sql
+DROP TRIGGER trigger_name;
+```
+
+### Example
+
+```sql
+DROP TRIGGER AfterEmployeeInsert;
+```
+
+This removes the `AfterEmployeeInsert` trigger.
+
+### Using IF EXISTS
+
+To avoid an error when the trigger does not exist, use `IF EXISTS`.
+
+```sql
+DROP TRIGGER IF EXISTS AfterEmployeeInsert;
+```
+
+This removes the trigger if it exists. Otherwise, MySQL issues a warning.
+
+### Important Points
+
+- `DROP TRIGGER` removes the trigger definition.
+- It does not delete the table associated with the trigger.
+- It does not automatically delete records previously written to an audit table.
+- Use the correct trigger name when removing a trigger.
+
+---
+
+## Difference Between BEFORE and AFTER Triggers
+
+| Trigger | When it runs | Common use |
+|---|---|---|
+| BEFORE INSERT | Before a new row is inserted | Validate new values |
+| AFTER INSERT | After a row is inserted successfully | Record new rows in an audit table |
+| BEFORE UPDATE | Before an existing row is updated | Validate updated values |
+| AFTER UPDATE | After a row is updated successfully | Record changes |
+| BEFORE DELETE | Before a row is deleted | Prevent certain deletions |
+| AFTER DELETE | After a row is deleted successfully | Record deleted data |
+
+## Day 18 Summary
+
+Today, we learned about MySQL triggers and how they automate database actions.
+
+- **Trigger:** A database object that executes automatically when a defined table event occurs.
+- **INSERT trigger:** Runs when a new row is inserted.
+- **UPDATE trigger:** Runs when an existing row is modified.
+- **DELETE trigger:** Runs when a row is deleted.
+- **BEFORE:** Executes before the triggering row operation.
+- **AFTER:** Executes after the row operation succeeds.
+- **NEW:** Accesses new row values in INSERT and UPDATE triggers.
+- **OLD:** Accesses existing row values in UPDATE and DELETE triggers.
+- **Auditing:** Keeps records of database changes.
+- **Validation:** Checks whether data follows required rules.
+- **DROP TRIGGER:** Removes a trigger from the database.
+
+Triggers are useful for auditing, validation, and automating database operations. They should be designed carefully so that database behavior remains clear, reliable, and easy to maintain.
