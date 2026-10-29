@@ -1,0 +1,722 @@
+# Day 19: Real-World Database Design and ER Diagrams
+
+## 1. Scenario: Design a Real-World Database
+
+In real-world projects, we need to store information about customers, products, orders, and payments. If all the information is stored in one large table, data may be repeated and difficult to maintain.
+
+To understand database design practically, let's build an **Online Shopping Database** using MySQL.
+
+### Project Requirements
+
+Our database should store:
+
+1. Customer details such as name, email, and phone number.
+2. Product details such as name, price, and available stock.
+3. Order details such as order date, customer, and order status.
+4. The products included in each order and their quantities.
+5. Payment details for orders.
+
+### Tables Required
+
+We will create five tables:
+
+- `customers`
+- `products`
+- `orders`
+- `order_items`
+- `payments`
+
+Each table has a specific responsibility. This keeps the database organized and reduces unnecessary data duplication.
+
+---
+
+## 2. Draw an ER Diagram and Convert It to Tables
+
+An **ER diagram (Entity-Relationship diagram)** is a visual representation of a database. It shows entities, their attributes, and the relationships between them.
+
+Before creating tables, it is useful to understand how the entities are connected.
+
+### ER Diagram
+
+```text
++------------------+
+|    CUSTOMERS     |
++------------------+
+| PK customer_id   |
+|    name          |
+|    email         |
+|    phone         |
++------------------+
+         |
+         | 1
+         |
+         | places
+         |
+         | N
++------------------+
+|      ORDERS      |
++------------------+
+| PK order_id      |
+| FK customer_id   |
+|    order_date    |
+|    status        |
++------------------+
+         |
+         | 1
+         |
+         | contains
+         |
+         | N
++------------------+
+|   ORDER_ITEMS    |
++------------------+
+| PK order_item_id |
+| FK order_id      |
+| FK product_id    |
+|    quantity      |
+|    unit_price    |
++------------------+
+         |
+         | N
+         |
+         | refers to
+         |
+         | 1
++------------------+
+|     PRODUCTS     |
++------------------+
+| PK product_id    |
+|    product_name  |
+|    price         |
+|    stock         |
++------------------+
+
++------------------+
+|     PAYMENTS     |
++------------------+
+| PK payment_id    |
+| FK order_id      |
+|    amount        |
+|    method        |
+|    status        |
++------------------+
+```
+
+### Understanding the Relationships
+
+**1. Customers and Orders**
+
+One customer can place many orders, but each order belongs to one customer.
+
+Relationship: One-to-Many (1:N).
+
+**2. Orders and Order Items**
+
+One order can contain multiple order items. Each order item belongs to one order.
+
+Relationship: One-to-Many (1:N).
+
+**3. Products and Order Items**
+
+One product can appear in many order items. Each order item refers to one product.
+
+Relationship: One-to-Many (1:N).
+
+**4. Orders and Payments**
+
+For this project, an order can have multiple payment records, such as an initial payment and a later payment. Each payment belongs to one order.
+
+Relationship: One-to-Many (1:N).
+
+The `order_items` table connects orders and products. This resolves the many-to-many relationship between orders and products.
+
+---
+
+## 3. Create Tables with Constraints and Insert Realistic Data
+
+Constraints help maintain data accuracy and consistency.
+
+### Important SQL Constraints
+
+- **PRIMARY KEY (PK):** Uniquely identifies each row.
+- **FOREIGN KEY (FK):** Connects tables and maintains referential integrity.
+- **CHECK:** Validates whether a value satisfies a condition.
+- **DEFAULT:** Supplies a value when one is not provided.
+- **NOT NULL:** Prevents a column from storing `NULL`.
+- **UNIQUE:** Prevents duplicate values in a column or combination of columns.
+
+### Step 1: Create the Database
+
+```sql
+CREATE DATABASE online_shopping;
+USE online_shopping;
+```
+
+### Step 2: Create the Customers Table
+
+```sql
+CREATE TABLE customers (
+    customer_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    phone VARCHAR(15) UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**Explanation:**
+
+- `customer_id` uniquely identifies each customer.
+- `AUTO_INCREMENT` generates the next ID automatically.
+- `name` and `email` cannot be NULL.
+- `UNIQUE` prevents duplicate email addresses and phone numbers.
+- `created_at` automatically stores the creation time if no value is supplied.
+
+### Step 3: Create the Products Table
+
+```sql
+CREATE TABLE products (
+    product_id INT AUTO_INCREMENT PRIMARY KEY,
+    product_name VARCHAR(100) NOT NULL UNIQUE,
+    price DECIMAL(10, 2) NOT NULL,
+    stock INT NOT NULL DEFAULT 0,
+    CHECK (price > 0),
+    CHECK (stock >= 0)
+);
+```
+
+**Explanation:**
+
+- `DECIMAL(10, 2)` stores prices with two decimal places.
+- The price must be greater than zero.
+- Stock cannot be negative.
+- New products receive a default stock of zero when stock is omitted.
+
+### Step 4: Create the Orders Table
+
+```sql
+CREATE TABLE orders (
+    order_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    order_date DATE NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'Pending',
+    FOREIGN KEY (customer_id)
+        REFERENCES customers(customer_id),
+    CHECK (
+        status IN (
+            'Pending',
+            'Processing',
+            'Shipped',
+            'Delivered',
+            'Cancelled'
+        )
+    )
+);
+```
+
+The foreign key ensures that an order cannot reference a customer who does not exist.
+
+### Step 5: Create the Order Items Table
+
+```sql
+CREATE TABLE order_items (
+    order_item_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL,
+    unit_price DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (order_id)
+        REFERENCES orders(order_id),
+    FOREIGN KEY (product_id)
+        REFERENCES products(product_id),
+    CHECK (quantity > 0),
+    CHECK (unit_price > 0),
+    UNIQUE (order_id, product_id)
+);
+```
+
+**Explanation:**
+
+- Each row represents one product included in an order.
+- `quantity` must be greater than zero.
+- `unit_price` stores the price agreed upon for that order item.
+- `UNIQUE (order_id, product_id)` prevents the same product from appearing twice in one order. Multiple units are recorded through `quantity`.
+
+### Step 6: Create the Payments Table
+
+```sql
+CREATE TABLE payments (
+    payment_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    method VARCHAR(20) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'Pending',
+    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id)
+        REFERENCES orders(order_id),
+    CHECK (amount > 0),
+    CHECK (method IN ('UPI', 'Card', 'Cash', 'Net Banking')),
+    CHECK (status IN ('Pending', 'Completed', 'Failed', 'Refunded'))
+);
+```
+
+The payment table stores the amount, method, and status of each payment attempt.
+
+### Step 7: Insert Customers
+
+```sql
+INSERT INTO customers (name, email, phone)
+VALUES
+('Ravi Kumar', 'ravi@example.com', '9876500001'),
+('Priya Sharma', 'priya@example.com', '9876500002'),
+('Arun Reddy', 'arun@example.com', '9876500003');
+```
+
+### Step 8: Insert Products
+
+```sql
+INSERT INTO products (product_name, price, stock)
+VALUES
+('Keyboard', 1200.00, 20),
+('Mouse', 600.00, 30),
+('Monitor', 9500.00, 10),
+('Headphones', 1800.00, 15);
+```
+
+### Step 9: Insert Orders
+
+```sql
+INSERT INTO orders (customer_id, order_date, status)
+VALUES
+(1, '2026-10-20', 'Processing'),
+(2, '2026-10-21', 'Pending'),
+(1, '2026-10-22', 'Delivered');
+```
+
+These orders refer to customers whose IDs were created in the previous step.
+
+### Step 10: Insert Order Items
+
+```sql
+INSERT INTO order_items
+    (order_id, product_id, quantity, unit_price)
+VALUES
+(1, 1, 1, 1200.00),
+(1, 2, 2, 600.00),
+(2, 3, 1, 9500.00),
+(3, 4, 1, 1800.00);
+```
+
+### Step 11: Insert Payments
+
+```sql
+INSERT INTO payments (order_id, amount, method, status)
+VALUES
+(1, 2400.00, 'UPI', 'Completed'),
+(2, 9500.00, 'Card', 'Pending'),
+(3, 1800.00, 'Cash', 'Completed');
+```
+
+### Step 12: View the Data
+
+```sql
+SELECT * FROM customers;
+SELECT * FROM products;
+SELECT * FROM orders;
+SELECT * FROM order_items;
+SELECT * FROM payments;
+```
+
+To calculate the total for each order:
+
+```sql
+SELECT
+    order_id,
+    SUM(quantity * unit_price) AS order_total
+FROM order_items
+GROUP BY order_id;
+```
+
+The total is calculated by multiplying each item's quantity by its unit price and adding the results for each order.
+
+---
+
+## 4. UPDATE with Computed Columns and Business Conditions
+
+The `UPDATE` statement modifies existing records. We can also use calculations and conditions to update data according to business rules.
+
+### Example 1: Increase Product Prices by 10%
+
+```sql
+UPDATE products
+SET price = price * 1.10
+WHERE product_id IN (1, 2);
+```
+
+This increases the prices of products with IDs 1 and 2 by 10%.
+
+### Example 2: Reduce Stock After a Sale
+
+Suppose two mice are sold.
+
+```sql
+UPDATE products
+SET stock = stock - 2
+WHERE product_id = 2
+  AND stock >= 2;
+```
+
+The condition prevents the stock from becoming negative.
+
+For a production application, check that exactly the intended row was updated and handle insufficient stock explicitly.
+
+### Example 3: Update Order Status
+
+```sql
+UPDATE orders
+SET status = 'Shipped'
+WHERE order_id = 1
+  AND status = 'Processing';
+```
+
+The status changes only when the order is currently in the Processing state.
+
+### Example 4: Calculate an Order Total
+
+The order total can be calculated directly from `order_items`:
+
+```sql
+SELECT
+    order_id,
+    SUM(quantity * unit_price) AS order_total
+FROM order_items
+GROUP BY order_id;
+```
+
+A computed value does not always need to be stored in a separate column. Calculating totals from order items helps avoid inconsistent duplicate data.
+
+**Remember:** Always use a suitable `WHERE` condition with `UPDATE`. Without it, every row in the table may be updated.
+
+---
+
+## 5. DELETE with Rules and TRUNCATE
+
+SQL provides different ways to remove data. The correct command depends on whether we want to remove selected rows, all rows, or an entire table structure.
+
+### A. DELETE Selected Records
+
+```sql
+DELETE FROM orders
+WHERE order_id = 2;
+```
+
+This attempts to delete order 2. However, it will fail if related rows in `order_items` or `payments` reference that order and the foreign keys use the default restrictive behavior.
+
+We must first decide how related records should be handled.
+
+For example, to remove a test order and its related records safely:
+
+```sql
+START TRANSACTION;
+
+DELETE FROM payments
+WHERE order_id = 2;
+
+DELETE FROM order_items
+WHERE order_id = 2;
+
+DELETE FROM orders
+WHERE order_id = 2;
+
+COMMIT;
+```
+
+Run this only when you really intend to delete order 2 and its associated data.
+
+### B. DELETE All Records
+
+```sql
+DELETE FROM order_items;
+```
+
+This deletes all rows from `order_items` while keeping the table structure. It may fail if other tables reference those rows through foreign keys.
+
+### C. TRUNCATE TABLE
+
+```sql
+TRUNCATE TABLE order_items;
+```
+
+`TRUNCATE TABLE` removes all rows from a table and usually resets its `AUTO_INCREMENT` counter.
+
+Important differences:
+
+- `DELETE` can remove selected rows using `WHERE`.
+- `TRUNCATE TABLE` removes all rows and does not accept a `WHERE` clause.
+- `TRUNCATE TABLE` is generally treated as a DDL operation in MySQL and causes an implicit commit. It cannot be rolled back like an ordinary transactional DELETE.
+- Truncating a table referenced by a foreign key may be rejected, even if the referencing table currently contains no rows.
+
+**Important:** Be especially careful with `DELETE` and `TRUNCATE`. Check the table and the affected data before running either command.
+
+---
+
+## 6. Wrap Bulk Operations in Transactions
+
+A **transaction** is a group of database operations treated as one unit of work.
+
+Transactions are useful when several changes must succeed together. If something goes wrong before the transaction is committed, we can roll back the changes.
+
+### Important Transaction Commands
+
+- `START TRANSACTION` or `BEGIN`: Starts a transaction.
+- `COMMIT`: Saves the transaction's changes.
+- `ROLLBACK`: Cancels uncommitted changes.
+- `SAVEPOINT`: Creates a point to which a transaction can be rolled back.
+
+### Example 1: COMMIT
+
+Suppose we need to reduce the stock of a product after confirming a sale.
+
+```sql
+START TRANSACTION;
+
+UPDATE products
+SET stock = stock - 2
+WHERE product_id = 2
+  AND stock >= 2;
+
+COMMIT;
+```
+
+The changes are committed after the operation.
+
+For a real application, check that the update affected the intended number of rows before committing.
+
+### Example 2: ROLLBACK
+
+```sql
+START TRANSACTION;
+
+UPDATE products
+SET price = price + 500
+WHERE product_id = 1;
+
+ROLLBACK;
+```
+
+The price increase is cancelled because the transaction is rolled back before it is committed.
+
+### Example 3: Using SAVEPOINT
+
+```sql
+START TRANSACTION;
+
+UPDATE products
+SET price = price + 100
+WHERE product_id = 1;
+
+SAVEPOINT price_updated;
+
+UPDATE products
+SET stock = stock - 1
+WHERE product_id = 1
+  AND stock > 0;
+
+ROLLBACK TO SAVEPOINT price_updated;
+
+COMMIT;
+```
+
+The price change remains, while the stock update is rolled back to the savepoint. This example assumes the tables use a transactional storage engine such as InnoDB.
+
+### Important Points
+
+- Use transactions for related changes that must succeed together.
+- `COMMIT` makes the changes permanent.
+- `ROLLBACK` reverses uncommitted transactional changes.
+- DDL commands such as `TRUNCATE TABLE` have different transaction behavior in MySQL.
+- Transactions work as expected for transactional storage engines such as InnoDB.
+
+---
+
+## 7. ER Diagrams
+
+An **ER diagram** represents the structure of a database visually.
+
+It helps developers plan a database before writing SQL statements.
+
+### Main Components
+
+**Entity:** A real-world object or concept, such as Customer, Product, or Order.
+
+**Attribute:** A property of an entity, such as customer name, product price, or order date.
+
+**Relationship:** A connection between entities, such as a customer placing an order.
+
+**Primary Key:** An attribute that uniquely identifies a record.
+
+**Foreign Key:** An attribute that references a key in another table.
+
+### Common Relationship Types
+
+**One-to-One (1:1)**
+
+One record in a table is related to one record in another table.
+
+Example: A person and a unique identity record, depending on the system's rules.
+
+**One-to-Many (1:N)**
+
+One record can be related to multiple records in another table.
+
+Example: One customer can place many orders.
+
+**Many-to-Many (M:N)**
+
+Multiple records in one entity can be related to multiple records in another entity.
+
+Example: An order can contain multiple products, and a product can appear in many orders.
+
+In a relational database, a many-to-many relationship is commonly implemented using a junction table, such as `order_items`.
+
+---
+
+## 8. Identifying Entities and Relationships
+
+Before designing a database, identify the main objects that the system needs to store.
+
+For an online shopping system, the entities are:
+
+1. **Customer:** Stores customer information.
+2. **Product:** Stores product details and available stock.
+3. **Order:** Stores information about each order.
+4. **Order Item:** Stores the products and quantities included in an order.
+5. **Payment:** Stores payment attempts and their details.
+
+### How to Identify Entities
+
+Ask these questions:
+
+- What information must the system store?
+- Which objects need their own records?
+- Which details belong together?
+- Which objects are connected to each other?
+- Which attributes uniquely identify each record?
+
+### How to Identify Relationships
+
+For example:
+
+- A customer places orders.
+- An order contains order items.
+- An order item refers to a product.
+- An order can have payment records.
+
+These rules help determine which tables need primary keys and foreign keys.
+
+---
+
+## 9. Drawing ER Diagrams
+
+When drawing an ER diagram, follow these steps:
+
+**Step 1:** List all the entities.
+
+For example: Customers, Products, Orders, Order Items, and Payments.
+
+**Step 2:** Add attributes to each entity.
+
+For example, Customers contains customer ID, name, email, and phone.
+
+**Step 3:** Identify the primary key for each entity.
+
+For example, `customer_id` is the primary key of Customers.
+
+**Step 4:** Draw relationships between entities.
+
+For example, Customers has a one-to-many relationship with Orders.
+
+**Step 5:** Add foreign keys when converting the design into relational tables.
+
+For example, `customer_id` in Orders references `customer_id` in Customers.
+
+**Step 6:** Check the design for duplication and missing relationships.
+
+Ensure that each entity has a clear purpose and that relationships reflect the actual business rules.
+
+### Simple ER Diagram Notation
+
+- `PK` means Primary Key.
+- `FK` means Foreign Key.
+- `1` means one.
+- `N` means many.
+- A line connects related entities.
+
+Different diagram tools use different symbols, but the important part is to clearly show entities, attributes, and cardinality.
+
+---
+
+## 10. Converting ER Diagrams into Tables
+
+After creating the ER diagram, convert it into relational tables.
+
+### Rule 1: Each Entity Becomes a Table
+
+For example:
+
+- Customer entity becomes `customers`.
+- Product entity becomes `products`.
+- Order entity becomes `orders`.
+
+### Rule 2: Attributes Become Columns
+
+Customer attributes such as name, email, and phone become columns in the `customers` table.
+
+### Rule 3: Choose a Primary Key
+
+Each table should have a primary key that uniquely identifies its records.
+
+Example:
+
+```sql
+customer_id INT AUTO_INCREMENT PRIMARY KEY
+```
+
+### Rule 4: Implement One-to-Many Relationships
+
+Place the foreign key on the many side.
+
+For example, `orders.customer_id` references `customers.customer_id`.
+
+### Rule 5: Implement Many-to-Many Relationships
+
+Create a junction table.
+
+For example, `order_items` connects `orders` and `products` through `order_id` and `product_id`.
+
+### Rule 6: Add Constraints
+
+Use suitable constraints to protect the data:
+
+- `PRIMARY KEY` for unique row identification.
+- `FOREIGN KEY` for relationships between tables.
+- `NOT NULL` for required values.
+- `UNIQUE` for values that must not be duplicated.
+- `CHECK` for valid ranges and allowed values.
+- `DEFAULT` for standard values when none are provided.
+
+### Final Day 19 Summary
+
+Today, we learned how to plan and build a real-world database using an online shopping example.
+
+- Designed entities and relationships.
+- Created an ER diagram.
+- Converted entities into relational tables.
+- Used primary keys and foreign keys.
+- Applied `CHECK`, `DEFAULT`, `NOT NULL`, and `UNIQUE` constraints.
+- Inserted realistic sample records.
+- Updated data using calculations and business conditions.
+- Compared `DELETE` and `TRUNCATE`.
+- Used `START TRANSACTION`, `COMMIT`, `ROLLBACK`, and `SAVEPOINT`.
+
+**Main takeaway:** A good database starts with a clear design. ER diagrams help us understand relationships, while keys, constraints, and transactions help keep the data consistent and reliable.
