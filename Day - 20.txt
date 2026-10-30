@@ -1,0 +1,850 @@
+# Day 20: MySQL Project Queries and Final Review
+
+## Introduction
+
+In this final day, we will use the Online Shopping Database created on Day 19 and practice writing real-world SQL queries.
+
+We will cover:
+
+1. SELECT with WHERE
+2. GROUP BY
+3. HAVING
+4. ORDER BY
+5. LIMIT
+6. Multi-table JOINs
+7. Subqueries and Correlated Queries
+8. Views for Reporting and Full Project Review
+
+Before starting, make sure you have selected the project database:
+
+```sql
+USE online_shopping;
+```
+
+The project contains five main tables:
+
+- `customers`
+- `products`
+- `orders`
+- `order_items`
+- `payments`
+
+---
+
+## 1. SELECT with WHERE
+
+The `SELECT` statement is used to retrieve data from a table.
+
+The `WHERE` clause is used to filter records based on a particular condition.
+
+### Syntax
+
+```sql
+SELECT column_name
+FROM table_name
+WHERE condition;
+```
+
+### Example 1: Display All Customers
+
+```sql
+SELECT * FROM customers;
+```
+
+This displays all records and columns from the customers table.
+
+### Example 2: Find a Customer Using ID
+
+```sql
+SELECT *
+FROM customers
+WHERE customer_id = 1;
+```
+
+This displays the customer whose ID is 1.
+
+### Example 3: Find Products Above ₹1,000
+
+```sql
+SELECT product_name, price
+FROM products
+WHERE price > 1000;
+```
+
+This displays products whose price is greater than 1,000.
+
+### Example 4: Find Products with Available Stock
+
+```sql
+SELECT *
+FROM products
+WHERE stock > 0;
+```
+
+This displays products that are currently in stock.
+
+### Example 5: Find Orders with Pending Status
+
+```sql
+SELECT *
+FROM orders
+WHERE status = 'Pending';
+```
+
+This displays orders that have a Pending status.
+
+### Example 6: Multiple Conditions Using AND
+
+```sql
+SELECT *
+FROM products
+WHERE price > 1000
+AND stock > 5;
+```
+
+This displays products that satisfy both conditions.
+
+### Example 7: Multiple Conditions Using OR
+
+```sql
+SELECT *
+FROM orders
+WHERE status = 'Pending'
+OR status = 'Processing';
+```
+
+This displays orders that have either Pending or Processing status.
+
+**Remember:** `WHERE` filters individual rows before grouping takes place.
+
+---
+
+## 2. GROUP BY
+
+The `GROUP BY` clause is used to arrange rows into groups based on one or more columns.
+
+It is commonly used with aggregate functions such as:
+
+- `COUNT()` – counts records.
+- `SUM()` – calculates the total.
+- `AVG()` – calculates the average.
+- `MAX()` – finds the maximum value.
+- `MIN()` – finds the minimum value.
+
+### Syntax
+
+```sql
+SELECT column_name, aggregate_function(column_name)
+FROM table_name
+GROUP BY column_name;
+```
+
+### Example 1: Count Orders by Customer
+
+```sql
+SELECT
+    customer_id,
+    COUNT(*) AS total_orders
+FROM orders
+GROUP BY customer_id;
+```
+
+This displays how many orders each customer has placed.
+
+### Example 2: Calculate Total Stock by Product Price
+
+```sql
+SELECT
+    price,
+    SUM(stock) AS total_stock
+FROM products
+GROUP BY price;
+```
+
+This groups products with the same price and calculates their combined stock.
+
+### Example 3: Count Orders by Status
+
+```sql
+SELECT
+    status,
+    COUNT(*) AS total_orders
+FROM orders
+GROUP BY status;
+```
+
+This displays the number of orders in each status.
+
+### Example 4: Calculate Total Sales by Order
+
+```sql
+SELECT
+    order_id,
+    SUM(quantity * unit_price) AS order_total
+FROM order_items
+GROUP BY order_id;
+```
+
+This calculates the total value of each order.
+
+**Remember:** `GROUP BY` combines rows with matching values so that aggregate functions can calculate results for each group.
+
+---
+
+## 3. HAVING
+
+The `HAVING` clause is used to filter grouped results.
+
+It is commonly used with aggregate functions when we need to filter the output after grouping.
+
+### Difference Between WHERE and HAVING
+
+| WHERE | HAVING |
+|---|---|
+| Filters individual rows | Filters groups |
+| Applied before grouping | Applied after grouping |
+| Commonly used with normal conditions | Commonly used with aggregate conditions |
+
+### Syntax
+
+```sql
+SELECT column_name, aggregate_function(column_name)
+FROM table_name
+GROUP BY column_name
+HAVING condition;
+```
+
+### Example 1: Customers with More Than One Order
+
+```sql
+SELECT
+    customer_id,
+    COUNT(*) AS total_orders
+FROM orders
+GROUP BY customer_id
+HAVING COUNT(*) > 1;
+```
+
+This displays customers who have placed more than one order.
+
+### Example 2: Orders with a Total Above ₹1,000
+
+```sql
+SELECT
+    order_id,
+    SUM(quantity * unit_price) AS order_total
+FROM order_items
+GROUP BY order_id
+HAVING SUM(quantity * unit_price) > 1000;
+```
+
+This displays orders whose calculated total is greater than 1,000.
+
+### Example 3: Product Prices with Combined Stock Above 10
+
+```sql
+SELECT
+    price,
+    SUM(stock) AS total_stock
+FROM products
+GROUP BY price
+HAVING SUM(stock) > 10;
+```
+
+This displays price groups whose combined stock is greater than 10.
+
+### Using WHERE and HAVING Together
+
+```sql
+SELECT
+    customer_id,
+    COUNT(*) AS total_orders
+FROM orders
+WHERE status != 'Cancelled'
+GROUP BY customer_id
+HAVING COUNT(*) >= 1;
+```
+
+Here:
+
+1. `WHERE` removes cancelled orders.
+2. `GROUP BY` groups the remaining orders by customer.
+3. `HAVING` keeps groups with at least one order.
+
+**Remember:** Use `WHERE` to filter rows and `HAVING` to filter grouped results.
+
+---
+
+## 4. ORDER BY
+
+The `ORDER BY` clause is used to sort the result of a query.
+
+It can sort data in ascending or descending order.
+
+### Types of Sorting
+
+- `ASC` – Ascending order (smallest to largest, A to Z).
+- `DESC` – Descending order (largest to smallest, Z to A).
+
+Ascending order is the default when no direction is specified.
+
+### Syntax
+
+```sql
+SELECT column_name
+FROM table_name
+ORDER BY column_name ASC;
+```
+
+### Example 1: Sort Products by Price (Low to High)
+
+```sql
+SELECT *
+FROM products
+ORDER BY price ASC;
+```
+
+### Example 2: Sort Products by Price (High to Low)
+
+```sql
+SELECT *
+FROM products
+ORDER BY price DESC;
+```
+
+### Example 3: Sort Customers Alphabetically
+
+```sql
+SELECT *
+FROM customers
+ORDER BY name ASC;
+```
+
+### Example 4: Sort Orders by Date
+
+```sql
+SELECT *
+FROM orders
+ORDER BY order_date DESC;
+```
+
+This displays the most recent order dates first.
+
+### Example 5: Sort Using Multiple Columns
+
+```sql
+SELECT *
+FROM orders
+ORDER BY status ASC, order_date DESC;
+```
+
+First, orders are sorted by status. Within each status, they are sorted by date from newest to oldest.
+
+**Remember:** `ORDER BY` controls the order in which query results are displayed. It does not change the original stored records.
+
+---
+
+## 5. LIMIT
+
+The `LIMIT` clause is used to restrict the number of rows returned by a query.
+
+It is useful when displaying only a few records instead of the entire table.
+
+### Syntax
+
+```sql
+SELECT column_name
+FROM table_name
+LIMIT number;
+```
+
+### Example 1: Display the First Three Products
+
+```sql
+SELECT *
+FROM products
+LIMIT 3;
+```
+
+This returns a maximum of three product records.
+
+### Example 2: Display the Three Most Expensive Products
+
+```sql
+SELECT *
+FROM products
+ORDER BY price DESC
+LIMIT 3;
+```
+
+This sorts products from highest price to lowest price and returns the first three.
+
+### Example 3: Skip Rows Using OFFSET
+
+```sql
+SELECT *
+FROM products
+LIMIT 2 OFFSET 1;
+```
+
+This skips the first row and returns the next two rows.
+
+### Example 4: Pagination
+
+```sql
+SELECT *
+FROM products
+LIMIT 5 OFFSET 0;
+```
+
+This displays the first five records.
+
+```sql
+SELECT *
+FROM products
+LIMIT 5 OFFSET 5;
+```
+
+This displays the next five records.
+
+**Remember:** `LIMIT` controls how many rows are returned. Use `ORDER BY` with `LIMIT` when you need predictable results such as top-selling or highest-priced products.
+
+---
+
+## 6. Multi-table JOINs Across the Project Database
+
+A JOIN is used to retrieve related information from multiple tables.
+
+In our online shopping project, customer information, order information, product information, and payment information are stored in separate tables.
+
+JOINs allow us to combine these details into a single result.
+
+### Types of JOINs
+
+- INNER JOIN
+- LEFT JOIN
+- RIGHT JOIN
+- CROSS JOIN
+- SELF JOIN
+
+### Example 1: Customer Details with Their Orders
+
+```sql
+SELECT
+    customers.customer_id,
+    customers.name,
+    orders.order_id,
+    orders.order_date,
+    orders.status
+FROM customers
+INNER JOIN orders
+ON customers.customer_id = orders.customer_id;
+```
+
+This displays customers who have placed orders along with their order details.
+
+### Example 2: Orders with Customer Names
+
+```sql
+SELECT
+    o.order_id,
+    c.name AS customer_name,
+    o.order_date,
+    o.status
+FROM orders o
+INNER JOIN customers c
+ON o.customer_id = c.customer_id;
+```
+
+Here, `o` and `c` are table aliases. They make the query shorter and easier to read.
+
+### Example 3: Display Orders and Their Products
+
+```sql
+SELECT
+    o.order_id,
+    p.product_name,
+    oi.quantity,
+    oi.unit_price
+FROM orders o
+INNER JOIN order_items oi
+ON o.order_id = oi.order_id
+INNER JOIN products p
+ON oi.product_id = p.product_id;
+```
+
+This displays the products included in each order.
+
+### Example 4: Display Customer, Order, and Payment Details
+
+```sql
+SELECT
+    c.name AS customer_name,
+    o.order_id,
+    o.order_date,
+    p.amount,
+    p.method,
+    p.status AS payment_status
+FROM customers c
+INNER JOIN orders o
+ON c.customer_id = o.customer_id
+INNER JOIN payments p
+ON o.order_id = p.order_id;
+```
+
+This combines information from customers, orders, and payments.
+
+### Example 5: Display All Customers, Including Those Without Orders
+
+```sql
+SELECT
+    c.name,
+    o.order_id,
+    o.status
+FROM customers c
+LEFT JOIN orders o
+ON c.customer_id = o.customer_id;
+```
+
+A LEFT JOIN returns all customers, even if they have not placed an order. In that case, the order columns contain NULL.
+
+### Example 6: Calculate Each Order Total with Customer Name
+
+```sql
+SELECT
+    c.name AS customer_name,
+    o.order_id,
+    SUM(oi.quantity * oi.unit_price) AS order_total
+FROM customers c
+INNER JOIN orders o
+ON c.customer_id = o.customer_id
+INNER JOIN order_items oi
+ON o.order_id = oi.order_id
+GROUP BY c.name, o.order_id;
+```
+
+This calculates the total value of each order and displays the customer's name.
+
+**Remember:** JOINs help us retrieve related information without storing all the data in one large table.
+
+---
+
+## 7. Subqueries and Correlated Queries
+
+A **subquery** is a query written inside another SQL query.
+
+The inner query executes as part of the outer query and provides a result that the outer query can use.
+
+### A. Subquery
+
+### Example 1: Find Products Above the Average Price
+
+```sql
+SELECT *
+FROM products
+WHERE price > (
+    SELECT AVG(price)
+    FROM products
+);
+```
+
+**Explanation:**
+
+1. The inner query calculates the average product price.
+2. The outer query finds products whose price is greater than that average.
+
+### Example 2: Find Customers Who Have Placed Orders
+
+```sql
+SELECT *
+FROM customers
+WHERE customer_id IN (
+    SELECT customer_id
+    FROM orders
+);
+```
+
+This displays customers whose IDs appear in the orders table.
+
+### Example 3: Find the Most Expensive Product
+
+```sql
+SELECT *
+FROM products
+WHERE price = (
+    SELECT MAX(price)
+    FROM products
+);
+```
+
+This displays the product or products with the highest price.
+
+### B. Correlated Subquery
+
+A **correlated subquery** is a subquery that depends on the outer query.
+
+Unlike a simple subquery, it refers to a column from the outer query and is evaluated using the current outer row.
+
+### Example 1: Customers Who Have Placed at Least One Order
+
+```sql
+SELECT *
+FROM customers c
+WHERE EXISTS (
+    SELECT 1
+    FROM orders o
+    WHERE o.customer_id = c.customer_id
+);
+```
+
+**Explanation:**
+
+1. The outer query checks each customer.
+2. The inner query searches for an order belonging to that customer.
+3. `EXISTS` returns TRUE if at least one matching row is found.
+4. Only customers with matching orders are displayed.
+
+### Example 2: Products Priced Above Their Average Price Group
+
+This example compares each product with the average price of products in the same stock category. Here, the category is represented by the stock value for demonstration purposes.
+
+```sql
+SELECT *
+FROM products p
+WHERE price > (
+    SELECT AVG(p2.price)
+    FROM products p2
+    WHERE p2.stock = p.stock
+);
+```
+
+The inner query refers to `p.stock` from the outer query, making it correlated.
+
+### Difference Between Subquery and Correlated Subquery
+
+| Subquery | Correlated Subquery |
+|---|---|
+| Can execute independently | Depends on the outer query |
+| Does not need an outer query column | Refers to an outer query column |
+| Often calculates a result for the outer query | Evaluates using the current outer row |
+
+**Remember:** A subquery is a query inside another query. A correlated subquery depends on values from the outer query.
+
+---
+
+## 8. Views for Reporting and Full Project Review
+
+### A. Introduction to Views
+
+A **view** is a virtual table created using a SELECT query.
+
+It displays data from one or more underlying tables without storing a separate copy of the result as an ordinary table does.
+
+Views are useful for simplifying complex queries and preparing reports.
+
+### Syntax
+
+```sql
+CREATE VIEW view_name AS
+SELECT column_names
+FROM table_name
+WHERE condition;
+```
+
+### Example 1: Create a View for Customer Details
+
+```sql
+CREATE VIEW customer_view AS
+SELECT
+    customer_id,
+    name,
+    email
+FROM customers;
+```
+
+To display the view:
+
+```sql
+SELECT * FROM customer_view;
+```
+
+### Example 2: Create an Order Report View
+
+```sql
+CREATE VIEW order_report AS
+SELECT
+    c.name AS customer_name,
+    o.order_id,
+    o.order_date,
+    o.status
+FROM customers c
+INNER JOIN orders o
+ON c.customer_id = o.customer_id;
+```
+
+To view the report:
+
+```sql
+SELECT * FROM order_report;
+```
+
+This displays customer names along with their order information.
+
+### Example 3: Create a Sales Report View
+
+```sql
+CREATE VIEW sales_report AS
+SELECT
+    o.order_id,
+    c.name AS customer_name,
+    SUM(oi.quantity * oi.unit_price) AS order_total
+FROM customers c
+INNER JOIN orders o
+ON c.customer_id = o.customer_id
+INNER JOIN order_items oi
+ON o.order_id = oi.order_id
+GROUP BY o.order_id, c.name;
+```
+
+To display the sales report:
+
+```sql
+SELECT * FROM sales_report;
+```
+
+### Modifying a View
+
+Use `CREATE OR REPLACE VIEW` to create a view or replace its existing definition.
+
+```sql
+CREATE OR REPLACE VIEW customer_view AS
+SELECT
+    customer_id,
+    name,
+    email,
+    phone
+FROM customers;
+```
+
+### Removing a View
+
+```sql
+DROP VIEW IF EXISTS customer_view;
+```
+
+This removes the view definition but does not delete the original customer records.
+
+---
+
+# Full Project Review: Online Shopping Database
+
+We have now used the main SQL concepts from the 20-day course to build and query a practical database.
+
+### Project Tables
+
+| Table | Purpose |
+|---|---|
+| customers | Stores customer information |
+| products | Stores product details and stock |
+| orders | Stores customer orders |
+| order_items | Stores products included in orders |
+| payments | Stores payment information |
+
+### Important Relationships
+
+- One customer can place multiple orders.
+- One order can contain multiple order items.
+- One product can appear in multiple order items.
+- One order can have multiple payment records in our project design.
+
+### Important SQL Concepts Used
+
+**Database Creation**
+- CREATE DATABASE
+- USE DATABASE
+
+**Table Management**
+- CREATE TABLE
+- ALTER TABLE
+- DROP TABLE
+- TRUNCATE TABLE
+
+**Data Manipulation**
+- INSERT
+- UPDATE
+- DELETE
+
+**Data Retrieval**
+- SELECT
+- WHERE
+- DISTINCT
+- ORDER BY
+- LIMIT
+
+**Grouping and Aggregate Functions**
+- GROUP BY
+- HAVING
+- COUNT()
+- SUM()
+- AVG()
+- MAX()
+- MIN()
+
+**Joins**
+- INNER JOIN
+- LEFT JOIN
+- RIGHT JOIN
+- CROSS JOIN
+- SELF JOIN
+
+**Advanced SQL**
+- Subqueries
+- Correlated Subqueries
+- EXISTS
+- ANY
+- ALL
+- UNION
+- UNION ALL
+
+**Database Objects**
+- Views
+- Stored Procedures
+- Triggers
+
+**Transaction Management**
+- START TRANSACTION
+- COMMIT
+- ROLLBACK
+- SAVEPOINT
+
+**Constraints**
+- PRIMARY KEY
+- FOREIGN KEY
+- NOT NULL
+- UNIQUE
+- CHECK
+- DEFAULT
+
+---
+
+## Final Day 20 Summary
+
+Today, we learned how to use SQL concepts in a real-world online shopping database.
+
+- Retrieved records using SELECT and WHERE.
+- Grouped records using GROUP BY.
+- Filtered grouped results using HAVING.
+- Sorted records using ORDER BY.
+- Limited results using LIMIT.
+- Combined multiple tables using JOINs.
+- Used subqueries and correlated queries.
+- Created views for reporting.
+- Reviewed the complete database project.
+
+## MySQL 20-Day Course Completion
+
+Congratulations! You have completed the 20-day MySQL learning journey.
+
+You have learned the fundamentals of database management, SQL commands, constraints, joins, functions, subqueries, views, stored procedures, triggers, transactions, and practical database design.
+
+**Final takeaway:** Learning SQL is not just about remembering commands. It is about understanding how data is stored, connected, retrieved, updated, and managed in real-world applications.
